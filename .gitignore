@@ -64,6 +64,9 @@ apps/backend/data/config.json
 !.claude/settings.json
 skills-lock.json
 
+# Claude Code session transcripts — personal, contains CV content
+.cc-history/
+
 # AI assistant tool folders (personal workflow, not tracked)
 .agents/
 .github/agents/
