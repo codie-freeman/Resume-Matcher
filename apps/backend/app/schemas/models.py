@@ -139,6 +139,10 @@ class Experience(BaseModel):
     company: str = ""
     location: str | None = None
     years: str = ""
+    # A second, non-contiguous employment period at the same role/company
+    # (e.g. left and later rejoined). Rendered as an extra date line below
+    # the primary `years` range; blank/omitted when there's only one period.
+    secondaryYears: str = ""
     description: list[str] = Field(default_factory=list)
 
     @field_validator("description", mode="before")
@@ -155,8 +159,9 @@ class Education(BaseModel):
     degree: str = ""
     years: str = ""
     description: str | None = None
+    note: str | None = None  # Short italic footnote (e.g. justifying an extended duration)
 
-    @field_validator("description", mode="before")
+    @field_validator("description", "note", mode="before")
     @classmethod
     def _normalize_description(cls, value: Any) -> str | None:
         return _coerce_optional_text(value)
@@ -179,10 +184,25 @@ class Project(BaseModel):
         return _coerce_string_list(value)
 
 
+class AdditionalGroup(BaseModel):
+    """A freeform named section (e.g. 'Publications', 'Volunteer Work', another
+    'Languages' group) rendered inline within the Skills & Awards block."""
+
+    id: str
+    label: str = ""
+    items: list[str] = Field(default_factory=list)
+
+    @field_validator("items", mode="before")
+    @classmethod
+    def _normalize_items(cls, value: Any) -> list[str]:
+        return _coerce_string_list(value)
+
+
 class AdditionalInfo(BaseModel):
     """Additional information section."""
 
     technicalSkills: list[str] = Field(default_factory=list)
+    additionalGroups: list[AdditionalGroup] = Field(default_factory=list)
     languages: list[str] = Field(default_factory=list)
     certificationsTraining: list[str] = Field(default_factory=list)
     awards: list[str] = Field(default_factory=list)
@@ -198,6 +218,13 @@ class AdditionalInfo(BaseModel):
     def _normalize_string_fields(cls, value: Any) -> list[str]:
         return _coerce_string_list(value)
 
+    @field_validator("additionalGroups", mode="before")
+    @classmethod
+    def _normalize_additional_groups(cls, value: Any) -> Any:
+        if not isinstance(value, list):
+            return []
+        return value
+
 
 # Section Metadata Models for dynamic section management
 class SectionMeta(BaseModel):
@@ -210,6 +237,19 @@ class SectionMeta(BaseModel):
     isDefault: bool = True  # True for built-in sections
     isVisible: bool = True  # Whether to show in resume
     order: int = 0  # Display order (0 = first after personalInfo)
+    fontSize: int | None = None  # Optional 1-5 override of Base size for this section's content only
+
+    @field_validator("fontSize", mode="before")
+    @classmethod
+    def _clamp_font_size(cls, v: Any) -> int | None:
+        """Clamp to [1, 5]; fall back to None (use Base) on blank/invalid input."""
+        if v is None or (isinstance(v, str) and not v.strip()):
+            return None
+        try:
+            level = int(v)
+        except (TypeError, ValueError):
+            return None
+        return max(1, min(5, level))
 
 
 class CustomSectionItem(BaseModel):
@@ -234,6 +274,9 @@ class CustomSection(BaseModel):
     sectionType: SectionType
     items: list[CustomSectionItem] | None = None  # For ITEM_LIST
     strings: list[str] | None = None  # For STRING_LIST
+    additionalGroups: list[AdditionalGroup] = Field(
+        default_factory=list
+    )  # Freeform named sub-lists (STRING_LIST only)
     text: str | None = None  # For TEXT
 
     @field_validator("items", mode="before")
@@ -257,6 +300,13 @@ class CustomSection(BaseModel):
         if value is None:
             return None
         return _coerce_string_list(value)
+
+    @field_validator("additionalGroups", mode="before")
+    @classmethod
+    def _normalize_additional_groups(cls, value: Any) -> Any:
+        if not isinstance(value, list):
+            return []
+        return value
 
     @field_validator("text", mode="before")
     @classmethod
@@ -352,6 +402,13 @@ class ResumeData(BaseModel):
     # NEW: Section metadata and custom sections
     sectionMeta: list[SectionMeta] = Field(default_factory=list)
     customSections: dict[str, CustomSection] = Field(default_factory=dict)
+
+    # Template/formatting config (template choice, fonts, spacing, margins,
+    # accent color, etc.). Deliberately untyped here — it's pure rendering
+    # config owned by the frontend (`TemplateSettings` in
+    # lib/types/template-settings.ts), not data the backend reasons about, so
+    # the frontend can add new formatting knobs without a backend schema change.
+    templateSettings: dict[str, Any] | None = None
 
     @field_validator("summary", mode="before")
     @classmethod
@@ -622,6 +679,18 @@ class ImproveResumeConfirmRequest(BaseModel):
     job_id: str
     improved_data: ResumeData
     improvements: list[ImprovementSuggestion]
+
+
+class CloneResumeForJobRequest(BaseModel):
+    """Request to create a tailored resume for a job with zero LLM calls.
+
+    Clones the master resume's content as-is (no AI tailoring, no generated
+    cover letter/title/interview prep) so it can be edited manually while
+    still behaving like any other tailored resume everywhere else in the app.
+    """
+
+    resume_id: str
+    job_id: str
 
 
 # Config Models

@@ -15,6 +15,11 @@ export interface GeneratePromptProps {
   onGenerate: () => void;
   /** Whether this is a tailored resume (has job context) */
   isTailoredResume: boolean;
+  /**
+   * Skip AI entirely and open an empty, manually-editable draft. Omitted for
+   * interview-prep, which has no manual equivalent.
+   */
+  onWriteManually?: () => void;
   /** Additional class names */
   className?: string;
 }
@@ -24,6 +29,7 @@ export function GeneratePrompt({
   isGenerating,
   onGenerate,
   isTailoredResume,
+  onWriteManually,
   className,
 }: GeneratePromptProps) {
   const { t } = useTranslations();
@@ -95,6 +101,11 @@ export function GeneratePrompt({
           </>
         )}
       </Button>
+      {onWriteManually && (
+        <Button variant="link" onClick={onWriteManually} disabled={isGenerating} className="mt-2">
+          {t('builder.generatePrompt.writeManually')}
+        </Button>
+      )}
       <p className="font-mono text-xs text-steel-grey mt-4">
         {isInterviewPrep
           ? t('builder.generatePrompt.interviewPrepFooter')

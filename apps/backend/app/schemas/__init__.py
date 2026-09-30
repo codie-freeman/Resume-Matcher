@@ -1,6 +1,7 @@
 """Pydantic schemas for request/response models."""
 
 from app.schemas.models import (
+    AdditionalGroup,
     AdditionalInfo,
     ATSScore,
     ATSSubScores,
@@ -8,6 +9,7 @@ from app.schemas.models import (
     ApiKeysUpdateRequest,
     ApiKeysUpdateResponse,
     ApiKeyStatusResponse,
+    CloneResumeForJobRequest,
     CustomSection,
     CustomSectionItem,
     Education,
@@ -78,10 +80,12 @@ __all__ = [
     "Education",
     "Project",
     "AdditionalInfo",
+    "AdditionalGroup",
     "SectionType",
     "SectionMeta",
     "CustomSectionItem",
     "CustomSection",
+    "CloneResumeForJobRequest",
     "ResumeData",
     "normalize_resume_data",
     "RawResume",

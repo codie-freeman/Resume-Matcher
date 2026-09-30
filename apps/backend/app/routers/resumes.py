@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 from app.schemas import (
     ATSScore,
     ATSSubScores,
+    CloneResumeForJobRequest,
     GenerateContentResponse,
     GenerateInterviewPrepResponse,
     ImproveResumeConfirmRequest,
@@ -274,6 +275,13 @@ def _restore_original_dates(
                 )
                 result_entries[idx]["years"] = orig_years
 
+            # secondaryYears (workExperience only) has no LLM-facing concept —
+            # it's a manually-entered second employment period, never
+            # generated. Restore it outright if the LLM dropped it.
+            orig_secondary = orig_entry.get("secondaryYears", "")
+            if orig_secondary and not result_entries[idx].get("secondaryYears"):
+                result_entries[idx]["secondaryYears"] = orig_secondary
+
     # Custom sections (itemList)
     orig_custom = original_data.get("customSections", {})
     result_custom = result.get("customSections", {})
@@ -304,6 +312,12 @@ def _restore_original_dates(
                     and not _has_month(result_years)
                 ):
                     result_items[idx]["years"] = orig_years
+
+    # templateSettings is pure rendering config the LLM never sees or should
+    # touch — always carry it over verbatim rather than losing it whenever
+    # the full-output regeneration path runs.
+    if original_data.get("templateSettings") is not None:
+        result["templateSettings"] = original_data["templateSettings"]
 
     return result
 
@@ -1260,6 +1274,90 @@ async def improve_resume_confirm_endpoint(
         _raise_improve_error("confirm", stage, e, detail)
 
 
+@router.post("/clone-for-job", response_model=ResumeFetchResponse)
+async def clone_resume_for_job_endpoint(
+    request: CloneResumeForJobRequest,
+) -> ResumeFetchResponse:
+    """Create a tailored resume for a job with zero LLM calls.
+
+    Copies the master resume's content as-is (no diff, no generated cover
+    letter/title/interview prep) and links it to the job the same way
+    ``/improve/confirm`` does, so it behaves like any other tailored resume
+    everywhere else in the app (viewer, builder, tracker, on-demand cover
+    letter/interview prep/JD match) — just without an initial AI pass.
+    """
+    master = await db.get_resume(request.resume_id)
+    if not master:
+        raise HTTPException(status_code=404, detail="Resume not found")
+
+    job = await db.get_job(request.job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job description not found")
+
+    original_data = _get_original_resume_data(master)
+    if not original_data:
+        raise HTTPException(
+            status_code=400,
+            detail="Master resume has no processed data to clone.",
+        )
+
+    try:
+        # Same lazy migration GET applies — keeps a clone of an old-format
+        # master consistent with what a fresh fetch of either resume returns.
+        cloned_data = normalize_resume_data(copy.deepcopy(original_data))
+        cloned_content = json.dumps(cloned_data, indent=2)
+
+        tailored_resume = await db.create_resume(
+            content=cloned_content,
+            content_type="json",
+            filename=f"tailored_{master.get('filename', 'resume')}",
+            is_master=False,
+            parent_id=request.resume_id,
+            processed_data=cloned_data,
+            processing_status="ready",
+        )
+
+        await db.create_improvement(
+            original_resume_id=request.resume_id,
+            tailored_resume_id=tailored_resume["resume_id"],
+            job_id=request.job_id,
+            improvements=[],
+        )
+
+        await _auto_create_tracker_application(
+            job_id=request.job_id,
+            tailored_resume_id=tailored_resume["resume_id"],
+            master_resume_id=request.resume_id,
+            job=job,
+            title=None,
+        )
+    except Exception as e:
+        logger.error(f"Failed to clone resume for job without AI: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to create resume. Please try again.",
+        )
+
+    raw_resume = RawResume(
+        id=None,
+        content=tailored_resume["content"],
+        content_type=tailored_resume["content_type"],
+        created_at=tailored_resume["created_at"],
+        processing_status=tailored_resume.get("processing_status", "pending"),
+    )
+
+    return ResumeFetchResponse(
+        request_id=str(uuid4()),
+        data=ResumeFetchData(
+            resume_id=tailored_resume["resume_id"],
+            raw_resume=raw_resume,
+            processed_resume=ResumeData.model_validate(cloned_data),
+            parent_id=request.resume_id,
+            title=tailored_resume.get("title"),
+        ),
+    )
+
+
 @router.post("/improve", response_model=ImproveResumeResponse)
 async def improve_resume_endpoint(
     request: ImproveResumeRequest,
@@ -1593,6 +1691,8 @@ async def download_resume_pdf(
     lineHeight: int = Query(3, ge=1, le=5),
     fontSize: int = Query(3, ge=1, le=5),
     headerScale: int = Query(3, ge=1, le=5),
+    nameSize: int = Query(3, ge=1, le=5),
+    contactSize: int = Query(3, ge=1, le=5),
     headerFont: str = Query("serif", pattern="^(serif|sans-serif|mono)$"),
     bodyFont: str = Query("sans-serif", pattern="^(serif|sans-serif|mono)$"),
     compactMode: bool = Query(False),
@@ -1611,6 +1711,8 @@ async def download_resume_pdf(
     - lineHeight: text line height (1-5)
     - fontSize: base font size (1-5)
     - headerScale: header size scale (1-5)
+    - nameSize: name heading font size (1-5)
+    - contactSize: contact details font size (1-5)
     - headerFont: serif, sans-serif, or mono
     - bodyFont: serif, sans-serif, or mono
     - compactMode: enable tighter spacing
@@ -1634,6 +1736,8 @@ async def download_resume_pdf(
         f"&lineHeight={lineHeight}"
         f"&fontSize={fontSize}"
         f"&headerScale={headerScale}"
+        f"&nameSize={nameSize}"
+        f"&contactSize={contactSize}"
         f"&headerFont={headerFont}"
         f"&bodyFont={bodyFont}"
         f"&compactMode={str(compactMode).lower()}"

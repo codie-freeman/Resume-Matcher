@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,9 @@ import {
   uploadJobDescriptions,
   previewImproveResume,
   confirmImproveResume,
+  cloneResumeForJob,
+  fetchResumeList,
+  type ResumeListItem,
 } from '@/lib/api/resume';
 import { fetchPromptConfig, type PromptOption } from '@/lib/api/config';
 import { Dropdown } from '@/components/ui/dropdown';
@@ -26,8 +29,11 @@ export default function TailorPage() {
   const { t } = useTranslations();
   const [jobDescription, setJobDescription] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isCreatingManual, setIsCreatingManual] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [masterResumeId, setMasterResumeId] = useState<string | null>(null);
+  const [baseResumeId, setBaseResumeId] = useState<string | null>(null);
+  const [baseResumeOptions, setBaseResumeOptions] = useState<ResumeListItem[]>([]);
   const [promptOptions, setPromptOptions] = useState<PromptOption[]>([]);
   const [selectedPromptId, setSelectedPromptId] = useState('keywords');
   const [promptLoading, setPromptLoading] = useState(false);
@@ -85,8 +91,29 @@ export default function TailorPage() {
       router.push('/dashboard');
     } else {
       setMasterResumeId(storedId);
+      setBaseResumeId(storedId);
     }
   }, [router]);
+
+  // Base-resume picker: defaults to the master resume, but any existing
+  // (including previously tailored) resume can be used as the starting point.
+  useEffect(() => {
+    if (!masterResumeId) return;
+    let cancelled = false;
+
+    fetchResumeList(true)
+      .then((items) => {
+        if (cancelled) return;
+        setBaseResumeOptions(items.filter((item) => item.processing_status === 'ready'));
+      })
+      .catch((err) => {
+        console.error('Failed to load resume list', err);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [masterResumeId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -120,9 +147,23 @@ export default function TailorPage() {
     if (e.key === 'Enter') e.stopPropagation();
   };
 
+  // Master resume always leads the list (it's the default starting point);
+  // everything else follows in the list's existing most-recently-updated order.
+  const baseResumeDropdownOptions = useMemo(() => {
+    const master = baseResumeOptions.find((item) => item.is_master);
+    const others = baseResumeOptions.filter((item) => !item.is_master);
+    const toOption = (item: ResumeListItem) => ({
+      id: item.resume_id,
+      label: item.is_master
+        ? t('tailor.masterResumeOption')
+        : item.title || item.filename || t('tailor.untitledResumeOption'),
+    });
+    return [...(master ? [toOption(master)] : []), ...others.map(toOption)];
+  }, [baseResumeOptions, t]);
+
   const buildConfirmPayload = (result: ImprovedResult) => {
-    if (!masterResumeId) {
-      throw new Error('Master resume ID is missing.');
+    if (!baseResumeId) {
+      throw new Error('Base resume ID is missing.');
     }
     const resumePreview = result.data.resume_preview;
     if (!resumePreview || typeof resumePreview !== 'object' || Array.isArray(resumePreview)) {
@@ -137,7 +178,7 @@ export default function TailorPage() {
       throw new Error('Resume preview data is invalid.');
     }
     return {
-      resume_id: masterResumeId,
+      resume_id: baseResumeId,
       job_id: result.data.job_id,
       improved_data: resumePreview as ResumeData,
       improvements:
@@ -225,13 +266,13 @@ export default function TailorPage() {
 
   const handleGenerate = async () => {
     const trimmedDescription = jobDescription.trim();
-    if (!trimmedDescription || !masterResumeId) return;
+    if (!trimmedDescription || !baseResumeId) return;
     const validationError = getGenerateValidationError(trimmedDescription);
     if (validationError) {
       setError(validationError);
       return;
     }
-    const resumeId = masterResumeId;
+    const resumeId = baseResumeId;
     setIsLoading(true);
     setError(null);
     startTimer();
@@ -240,6 +281,39 @@ export default function TailorPage() {
     } finally {
       setIsLoading(false);
       stopTimer();
+    }
+  };
+
+  // Creates a tailored resume for this JD without any AI call — an exact
+  // copy of the selected base resume, ready for manual editing in the
+  // Builder. Useful for organising CV versions per application without
+  // spending an LLM call when no rewriting is actually wanted.
+  const handleCreateWithoutAi = async () => {
+    const trimmedDescription = jobDescription.trim();
+    if (!trimmedDescription || !baseResumeId) return;
+    const validationError = getGenerateValidationError(trimmedDescription);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    setIsCreatingManual(true);
+    setError(null);
+    try {
+      const jobId = await uploadJobDescriptions([trimmedDescription], baseResumeId);
+      incrementJobs();
+      const cloned = await cloneResumeForJob(baseResumeId, jobId);
+      incrementResumes();
+      const newResumeId = cloned?.resume_id;
+      if (newResumeId) {
+        router.push(`/builder?id=${newResumeId}`);
+      } else {
+        router.push('/builder');
+      }
+    } catch (err) {
+      console.error(err);
+      setError(t('tailor.errors.failedToCreateManual'));
+    } finally {
+      setIsCreatingManual(false);
     }
   };
 
@@ -309,13 +383,13 @@ export default function TailorPage() {
   const handleRegenerateConfirm = async () => {
     setShowRegenerateDialog(false);
     const trimmedDescription = jobDescription.trim();
-    if (!trimmedDescription || !masterResumeId) return;
+    if (!trimmedDescription || !baseResumeId) return;
     const validationError = getGenerateValidationError(trimmedDescription);
     if (validationError) {
       setError(validationError);
       return;
     }
-    const resumeId = masterResumeId;
+    const resumeId = baseResumeId;
     setIsLoading(true);
     setError(null);
     startTimer();
@@ -373,6 +447,17 @@ export default function TailorPage() {
         )}
 
         <div className="space-y-6">
+          {baseResumeDropdownOptions.length > 1 && (
+            <Dropdown
+              options={baseResumeDropdownOptions}
+              value={baseResumeId ?? ''}
+              onChange={setBaseResumeId}
+              label={t('tailor.selectResume')}
+              description={t('tailor.baseResumeDescription')}
+              disabled={isLoading || isCreatingManual}
+            />
+          )}
+
           <Dropdown
             options={
               promptOptions.length > 0
@@ -432,7 +517,13 @@ export default function TailorPage() {
           <Button
             size="lg"
             onClick={handleGenerate}
-            disabled={isLoading || statusLoading || !jobDescription.trim() || !isLlmConfigured}
+            disabled={
+              isLoading ||
+              statusLoading ||
+              !jobDescription.trim() ||
+              !isLlmConfigured ||
+              !baseResumeId
+            }
             className="w-full"
           >
             {isLoading ? (
@@ -454,6 +545,34 @@ export default function TailorPage() {
               t('tailor.generateTailored')
             )}
           </Button>
+
+          <div className="flex items-center gap-3" aria-hidden="true">
+            <div className="flex-1 h-px bg-black/20" />
+            <span className="font-mono text-xs uppercase tracking-wider text-steel-grey">
+              {t('common.or')}
+            </span>
+            <div className="flex-1 h-px bg-black/20" />
+          </div>
+
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={handleCreateWithoutAi}
+            disabled={isLoading || isCreatingManual || !jobDescription.trim() || !baseResumeId}
+            className="w-full"
+          >
+            {isCreatingManual ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                {t('common.processing')}
+              </>
+            ) : (
+              t('tailor.createWithoutAi')
+            )}
+          </Button>
+          <p className="font-mono text-xs text-steel-grey text-center -mt-2">
+            {t('tailor.createWithoutAiDescription')}
+          </p>
         </div>
       </div>
 
