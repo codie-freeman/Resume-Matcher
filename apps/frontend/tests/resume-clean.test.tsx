@@ -17,6 +17,15 @@ const data: ResumeData = {
       description: ['Lead client demos.'],
     },
   ],
+  education: [
+    {
+      id: 1,
+      institution: 'University of Reading',
+      degree: 'BSc (Hons) Pharmaceutical Chemistry',
+      years: 'Sep 2021 - Jun 2027',
+      note: 'including foundation year, industrial placement and approved interruption of study',
+    },
+  ],
   additional: { technicalSkills: ['Python', 'TypeScript'] },
 } as ResumeData;
 
@@ -27,5 +36,14 @@ describe('ResumeClean', () => {
     expect(screen.getByText('Apideck')).toBeInTheDocument();
     expect(screen.getByText('DevRel Engineer')).toBeInTheDocument();
     expect(screen.getByText('Lead client demos.')).toBeInTheDocument();
+  });
+
+  it('renders the education note as an italic footnote', () => {
+    render(<ResumeClean data={data} />);
+    const note = screen.getByText(
+      'including foundation year, industrial placement and approved interruption of study'
+    );
+    expect(note).toBeInTheDocument();
+    expect(note).toHaveClass('italic');
   });
 });

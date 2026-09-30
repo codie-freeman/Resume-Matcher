@@ -5,6 +5,7 @@ import {
   createCustomSection,
   generateCustomSectionId,
   getAllSections,
+  getSectionFontSizeStyle,
   getSectionMeta,
   getSortedSections,
   localizeDefaultSectionMeta,
@@ -124,5 +125,20 @@ describe('withLocalizedDefaultSections', () => {
     expect(out.sectionMeta).toHaveLength(DEFAULT_SECTION_META.length);
     const summary = out.sectionMeta!.find((s) => s.id === 'summary');
     expect(summary!.displayName).toBe('t:resume.sections.summary');
+  });
+});
+
+describe('getSectionFontSizeStyle', () => {
+  it('returns undefined when the section has no override (use Base)', () => {
+    expect(getSectionFontSizeStyle(meta({}))).toBeUndefined();
+  });
+
+  it('returns a --font-size-base override matching FONT_SIZE_MAP for the given level', () => {
+    expect(getSectionFontSizeStyle(meta({ fontSize: 5 }))).toEqual({
+      '--font-size-base': '16px',
+    });
+    expect(getSectionFontSizeStyle(meta({ fontSize: 1 }))).toEqual({
+      '--font-size-base': '11px',
+    });
   });
 });

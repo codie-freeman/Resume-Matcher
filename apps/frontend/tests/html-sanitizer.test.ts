@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { sanitizeHtml } from '@/lib/utils/html-sanitizer';
+import { sanitizeHtml, sanitizeRichText } from '@/lib/utils/html-sanitizer';
 
 /**
  * sanitizeHtml guards every `dangerouslySetInnerHTML` sink (rich-text bullets,
@@ -43,5 +43,64 @@ describe('sanitizeHtml', () => {
     const out = sanitizeHtml('<img src=x onerror="alert(1)">');
     expect(out).not.toContain('img');
     expect(out).not.toContain('onerror');
+  });
+});
+
+/**
+ * sanitizeRichText guards the cover-letter editor's dangerouslySetInnerHTML
+ * sinks. Whitelist: strong/em/u/a/span/p + href/target/rel/style, where
+ * style is restricted to exactly one of the font-size presets.
+ */
+describe('sanitizeRichText', () => {
+  it('keeps paragraphs and whitelisted inline formatting', () => {
+    const out = sanitizeRichText('<p><strong>bold</strong> <em>italic</em> <u>under</u></p>');
+    expect(out).toContain('<p>');
+    expect(out).toContain('<strong>bold</strong>');
+    expect(out).toContain('<em>italic</em>');
+    expect(out).toContain('<u>under</u>');
+  });
+
+  it('keeps a span with an allowed font-size style', () => {
+    const out = sanitizeRichText('<span style="font-size: 20px">big</span>');
+    expect(out).toContain('style="font-size: 20px"');
+    expect(out).toContain('big');
+  });
+
+  it('accepts the trailing semicolon the browser/Tiptap actually serializes', () => {
+    const out = sanitizeRichText('<span style="font-size: 20px;">big</span>');
+    expect(out).toContain('style="font-size: 20px"');
+  });
+
+  it('strips a style attribute that is not an allowed font-size', () => {
+    const out = sanitizeRichText('<span style="font-size: 999px">x</span>');
+    expect(out).not.toContain('999px');
+
+    const out2 = sanitizeRichText('<span style="color: red; font-size: 20px">x</span>');
+    expect(out2).not.toContain('color');
+    expect(out2).not.toContain('20px');
+  });
+
+  it('strips unrelated CSS smuggled into the style attribute', () => {
+    const out = sanitizeRichText(
+      '<span style="font-size: 20px; background: url(javascript:alert(1))">x</span>'
+    );
+    expect(out).not.toContain('url(');
+    expect(out).not.toContain('background');
+  });
+
+  it('still strips <script> and event handlers', () => {
+    const out = sanitizeRichText('<p onclick="evil()"><script>alert(1)</script>safe</p>');
+    expect(out).not.toContain('onclick');
+    expect(out).not.toContain('script');
+    expect(out).toContain('safe');
+  });
+
+  it('does not leak the style restriction hook into sanitizeHtml', () => {
+    // sanitizeRichText registers/unregisters its hook around each call; a
+    // later plain sanitizeHtml() call must not allow `style` through at all.
+    sanitizeRichText('<span style="font-size: 20px">x</span>');
+    const out = sanitizeHtml('<span style="font-size: 20px">x</span>');
+    expect(out).not.toContain('style');
+    expect(out).not.toContain('span');
   });
 });
