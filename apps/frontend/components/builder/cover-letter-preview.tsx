@@ -3,6 +3,8 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { useTranslations } from '@/lib/i18n';
+import { sanitizeRichText } from '@/lib/utils/html-sanitizer';
+import { stripHtml, toRichTextHtml } from '@/lib/utils/rich-text';
 
 export interface CoverLetterPersonalInfo {
   name?: string;
@@ -39,8 +41,8 @@ export function CoverLetterPreview({
     day: 'numeric',
   }).format(new Date());
 
-  // Parse content into paragraphs
-  const paragraphs = content.split('\n\n').filter((p) => p.trim().length > 0);
+  const hasContent = stripHtml(content).trim().length > 0;
+  const safeHtml = hasContent ? sanitizeRichText(toRichTextHtml(content)) : '';
 
   return (
     <div
@@ -77,20 +79,24 @@ export function CoverLetterPreview({
         </div>
 
         {/* Body */}
-        <div className="space-y-4">
-          {paragraphs.length > 0 ? (
-            paragraphs.map((para, idx) => (
-              <p key={idx} className="font-serif text-base leading-relaxed text-ink-soft">
-                {para}
-              </p>
-            ))
-          ) : (
-            <div className="text-center py-12 text-steel-grey">
-              <p className="font-mono text-sm">{t('coverLetter.preview.emptyTitle')}</p>
-              <p className="font-mono text-xs mt-2">{t('coverLetter.preview.emptyDescription')}</p>
-            </div>
-          )}
-        </div>
+        {hasContent ? (
+          <div
+            className={cn(
+              'font-serif text-base leading-relaxed text-ink-soft',
+              '[&_p]:mb-4 [&_p:last-child]:mb-0',
+              '[&_strong]:font-bold [&_em]:italic [&_u]:underline',
+              '[&_a]:text-blue-700 [&_a]:underline',
+              '[&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4',
+              '[&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-4'
+            )}
+            dangerouslySetInnerHTML={{ __html: safeHtml }}
+          />
+        ) : (
+          <div className="text-center py-12 text-steel-grey">
+            <p className="font-mono text-sm">{t('coverLetter.preview.emptyTitle')}</p>
+            <p className="font-mono text-xs mt-2">{t('coverLetter.preview.emptyDescription')}</p>
+          </div>
+        )}
       </div>
     </div>
   );

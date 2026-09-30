@@ -1,10 +1,19 @@
 'use client';
 
 import * as React from 'react';
+import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Save, Loader2, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslations } from '@/lib/i18n';
+import { stripHtml, toRichTextHtml } from '@/lib/utils/rich-text';
+
+// Tiptap needs the DOM, so load it client-only (matches the other
+// RichTextEditor call sites in components/builder/forms/*).
+const RichTextEditor = dynamic(
+  () => import('@/components/ui/rich-text-editor').then((m) => m.RichTextEditor),
+  { ssr: false }
+);
 
 export interface CoverLetterEditorProps {
   /** Cover letter content */
@@ -27,11 +36,12 @@ export function CoverLetterEditor({
   className,
 }: CoverLetterEditorProps) {
   const { t } = useTranslations();
-  const wordCount = content
+  const plainText = stripHtml(content);
+  const wordCount = plainText
     .trim()
     .split(/\s+/)
     .filter((w) => w.length > 0).length;
-  const charCount = content.length;
+  const charCount = plainText.length;
 
   return (
     <div className={cn('flex flex-col h-full', className)}>
@@ -55,19 +65,13 @@ export function CoverLetterEditor({
       </div>
 
       {/* Editor Area */}
-      <div className="flex-1 p-4 overflow-hidden">
-        <textarea
-          value={content}
-          onChange={(e) => onChange(e.target.value)}
+      <div className="flex-1 p-4 overflow-y-auto">
+        <RichTextEditor
+          value={toRichTextHtml(content)}
+          onChange={onChange}
           placeholder={t('coverLetter.editor.placeholder')}
-          className={cn(
-            'w-full h-full min-h-[400px] p-4',
-            'font-mono text-sm leading-relaxed',
-            'border-2 border-black bg-white',
-            'resize-none',
-            'focus:outline-none focus:ring-2 focus:ring-blue-700 focus:ring-offset-2',
-            'placeholder:text-steel-grey'
-          )}
+          allowParagraphs
+          minHeight="60vh"
         />
       </div>
 

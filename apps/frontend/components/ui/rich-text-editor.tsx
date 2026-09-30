@@ -5,6 +5,9 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Underline from '@tiptap/extension-underline';
+import { TextStyle } from '@tiptap/extension-text-style';
+import { FontSize } from '@tiptap/extension-text-style/font-size';
+import { LineHeight } from '@tiptap/extension-text-style/line-height';
 import { RichTextToolbar } from './rich-text-toolbar';
 import { LinkDialog } from './link-dialog';
 import { cn } from '@/lib/utils';
@@ -20,6 +23,12 @@ interface RichTextEditorProps {
   className?: string;
   /** Minimum height of the editor */
   minHeight?: string;
+  /**
+   * Keep `<p>` paragraphs in the saved HTML instead of flattening to a
+   * single inline line. Off by default for the bullet-point use case; turn
+   * on for multi-paragraph content like a cover letter.
+   */
+  allowParagraphs?: boolean;
 }
 
 /**
@@ -36,6 +45,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   placeholder = 'Enter text...',
   className,
   minHeight = '60px',
+  allowParagraphs = false,
 }) => {
   const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -43,13 +53,30 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   // Track if we're doing an internal update to prevent loops (useRef to avoid re-renders)
   const isInternalUpdateRef = useRef(false);
 
+  // Bullet points are single-line, so `<p>` tags are stripped from the saved
+  // HTML; a cover letter needs its paragraph breaks kept.
+  const serialize = useCallback(
+    (html: string) =>
+      allowParagraphs ? html.trim() : html.replace(/<p>/g, '').replace(/<\/p>/g, '').trim(),
+    [allowParagraphs]
+  );
+
+  // Routed through a ref so onUpdate always calls the latest onChange/value,
+  // regardless of Tiptap's internal render-vs-effect timing.
+  const onChangeRef = useRef(onChange);
+  const serializeRef = useRef(serialize);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+    serializeRef.current = serialize;
+  });
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
         // Disable features we don't need for bullet points
         heading: false,
-        bulletList: false,
-        orderedList: false,
+        bulletList: allowParagraphs ? {} : false,
+        orderedList: allowParagraphs ? {} : false,
         blockquote: false,
         codeBlock: false,
         horizontalRule: false,
@@ -68,14 +95,14 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           rel: 'noopener noreferrer',
         },
       }),
+      TextStyle,
+      FontSize,
+      LineHeight,
     ],
     content: value || '',
     onUpdate: ({ editor }) => {
       isInternalUpdateRef.current = true;
-      const html = editor.getHTML();
-      // Convert <p> tags to plain content since we're in bullet mode
-      const cleanHtml = html.replace(/<p>/g, '').replace(/<\/p>/g, '').trim();
-      onChange(cleanHtml);
+      onChangeRef.current(serializeRef.current(editor.getHTML()));
       // Reset flag after a tick to ensure it stays true through the render cycle
       setTimeout(() => {
         isInternalUpdateRef.current = false;
@@ -109,13 +136,13 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   // Sync external value changes (e.g., from parent reset)
   useEffect(() => {
     if (editor && !isInternalUpdateRef.current) {
-      const currentContent = editor.getHTML().replace(/<p>/g, '').replace(/<\/p>/g, '').trim();
+      const currentContent = serialize(editor.getHTML());
 
       if (value !== currentContent) {
         editor.commands.setContent(value || '');
       }
     }
-  }, [value, editor]);
+  }, [value, editor, serialize]);
 
   // Handle link keyboard shortcut (Ctrl+K)
   useEffect(() => {
@@ -162,15 +189,19 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
   return (
     <div className={cn('space-y-1', className)}>
-      <RichTextToolbar editor={editor} onLinkClick={handleLinkClick} />
+      <RichTextToolbar editor={editor} onLinkClick={handleLinkClick} extended={allowParagraphs} />
       <div
         className={cn(
           'w-full border border-black bg-white',
           'px-3 py-2 text-sm text-black rounded-none',
           'focus-within:ring-1 focus-within:ring-blue-700',
           '[&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-[36px]',
-          '[&_.ProseMirror_p]:m-0',
-          '[&_.ProseMirror_a]:text-blue-700 [&_.ProseMirror_a]:underline'
+          allowParagraphs
+            ? '[&_.ProseMirror_p]:mb-3 [&_.ProseMirror_p:last-child]:mb-0'
+            : '[&_.ProseMirror_p]:m-0',
+          '[&_.ProseMirror_a]:text-blue-700 [&_.ProseMirror_a]:underline',
+          '[&_.ProseMirror_ul]:list-disc [&_.ProseMirror_ul]:pl-6',
+          '[&_.ProseMirror_ol]:list-decimal [&_.ProseMirror_ol]:pl-6'
         )}
         style={{ minHeight }}
       >
