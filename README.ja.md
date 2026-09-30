@@ -14,6 +14,12 @@
 
 </div>
 
+> **注記 / Note:** これは [Saurabh Rai](https://srbhr.com) 氏による
+> [srbhr/Resume-Matcher](https://github.com/srbhr/Resume-Matcher) の改変フォークです。
+> オリジナルからファイルが変更されています。
+> **この翻訳はフォークの変更内容に未対応です** —
+> [英語版 README](README.md#whats-different-in-this-fork) をご覧ください。
+
 <br>
 
 <div align="center">
@@ -199,7 +205,7 @@ MacOS / WSL / Ubuntu で最も手早い手順：
 
 ```bash
 # リポジトリをクローン
-git clone https://github.com/srbhr/Resume-Matcher.git
+git clone https://github.com/codie-freeman/Resume-Matcher.git
 cd Resume-Matcher
 
 # バックエンド（ターミナル 1）

@@ -4,7 +4,7 @@
 
 # Resume Matcher
 
-[𝙹𝚘𝚒𝚗 𝙳𝚒𝚜𝚌𝚘𝚛𝚍](https://dsc.gg/resume-matcher) ✦ [𝚆𝚎𝚋𝚜𝚒𝚝𝚎](https://resumematcher.fyi) ✦ [𝙷𝚘𝚠 𝚝𝚘 𝙸𝚗𝚜𝚝𝚊𝚕𝚕](https://resumematcher.fyi/docs/installation) ✦ [𝙲𝚘𝚗𝚝𝚛𝚒𝚋𝚞𝚝𝚘𝚛𝚜](#contributors) ✦ [𝚂𝚙𝚘𝚗𝚜𝚘𝚛](#sponsors) ✦ [𝚃𝚠𝚒𝚝𝚝𝚎𝚛/𝚇](https://twitter.com/srbhrai) ✦ [𝙻𝚒𝚗𝚔𝚎𝚍𝙸𝚗](https://www.linkedin.com/company/resume-matcher/) ✦ [𝙲𝚛𝚎𝚊𝚝𝚘𝚛](https://srbhr.com)
+[𝚆𝚑𝚊𝚝'𝚜 𝙳𝚒𝚏𝚏𝚎𝚛𝚎𝚗𝚝 𝚒𝚗 𝚝𝚑𝚒𝚜 𝙵𝚘𝚛𝚔](#whats-different-in-this-fork) ✦ [𝙹𝚘𝚒𝚗 𝙳𝚒𝚜𝚌𝚘𝚛𝚍](https://dsc.gg/resume-matcher) ✦ [𝚆𝚎𝚋𝚜𝚒𝚝𝚎](https://resumematcher.fyi) ✦ [𝙷𝚘𝚠 𝚝𝚘 𝙸𝚗𝚜𝚝𝚊𝚕𝚕](#how-to-install) ✦ [𝙲𝚘𝚗𝚝𝚛𝚒𝚋𝚞𝚝𝚘𝚛𝚜](#contributors) ✦ [𝚂𝚙𝚘𝚗𝚜𝚘𝚛](#sponsors) ✦ [𝚃𝚠𝚒𝚝𝚝𝚎𝚛/𝚇](https://twitter.com/srbhrai) ✦ [𝙾𝚛𝚒𝚐𝚒𝚗𝚊𝚕 𝙲𝚛𝚎𝚊𝚝𝚘𝚛](https://srbhr.com)
 
 **English** | [Español](README.es.md) | [简体中文](README.zh-CN.md) | [日本語](README.ja.md)
 
@@ -14,24 +14,35 @@ The AI harness to build tailored resumes for each job application with Claude, C
 
 </div>
 
+> ### This is a modified fork
+>
+> **Resume Matcher** was created by **[Saurabh Rai](https://srbhr.com)** and is maintained at
+> **[srbhr/Resume-Matcher](https://github.com/srbhr/Resume-Matcher)** ([resumematcher.fyi](https://resumematcher.fyi)).
+> All credit for the project belongs to Saurabh and the upstream contributors.
+>
+> This repository is a personal fork maintained by **[Codie](https://github.com/codie-freeman)**.
+> **Files in this repository have been modified from the original**, and some files have been added —
+> see **[What's Different in This Fork](#whats-different-in-this-fork)** for the full list.
+> The upstream project has not reviewed and is not responsible for any changes made here.
+>
+> Licensed under the Apache License 2.0, unchanged from upstream. See [License and Attribution](#license-and-attribution).
+>
+> **Looking for the original project? Go to [srbhr/Resume-Matcher](https://github.com/srbhr/Resume-Matcher).**
+
 <br>
 
 <div align="center">
 
-![Stars](https://img.shields.io/github/stars/srbhr/Resume-Matcher?labelColor=F0F0E8&style=for-the-badge&color=1d4ed8)
-![Apache 2.0](https://img.shields.io/github/license/srbhr/Resume-Matcher?labelColor=F0F0E8&style=for-the-badge&color=1d4ed8) ![Forks](https://img.shields.io/github/forks/srbhr/Resume-Matcher?labelColor=F0F0E8&style=for-the-badge&color=1d4ed8) ![version](https://img.shields.io/badge/Version-1.2%20Nightvision%20-FFF?labelColor=F0F0E8&style=for-the-badge&color=1d4ed8)
+![Apache 2.0](https://img.shields.io/github/license/codie-freeman/Resume-Matcher?labelColor=F0F0E8&style=for-the-badge&color=1d4ed8) ![version](https://img.shields.io/badge/Fork%20of%20upstream-v1.2%20Nightvision-FFF?labelColor=F0F0E8&style=for-the-badge&color=1d4ed8)
 
 [![Discord](https://img.shields.io/discord/1122069176962531400?labelColor=F0F0E8&logo=discord&logoColor=1d4ed8&style=for-the-badge&color=1d4ed8)](https://dsc.gg/resume-matcher) [![Website](https://img.shields.io/badge/website-Resume%20Matcher-FFF?labelColor=F0F0E8&style=for-the-badge&color=1d4ed8)](https://resumematcher.fyi) [![LinkedIn](https://img.shields.io/badge/LinkedIn-Resume%20Matcher-FFF?labelColor=F0F0E8&logo=LinkedIn&style=for-the-badge&color=1d4ed8)](https://www.linkedin.com/company/resume-matcher/)
-
-<a href="https://trendshift.io/repositories/565" target="_blank"><img src="https://trendshift.io/api/badge/repositories/565" alt="srbhr%2FResume-Matcher | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
-
-![Vercel OSS Program](https://vercel.com/oss/program-badge.svg)
 
 </div>
 
 > \[!IMPORTANT]
 >
-> The project needs your help and support. If you can donate a small amount, that will help me to continue developing and improving Resume Matcher.
+> **Support goes to the original creator, not to this fork.** Saurabh Rai develops and maintains Resume Matcher.
+> If you can donate a small amount, that will help him to continue developing and improving the upstream project.
 
 <div align="center">
 
@@ -40,6 +51,59 @@ The AI harness to build tailored resumes for each job application with Claude, C
 **Sponsoring for a company?** Put your logo in front of 27k+ developers → **[become a sponsor ↓](#sponsors)**
 
 </div>
+
+<a id="whats-different-in-this-fork"></a>
+
+## What's Different in This Fork
+
+Everything below was added on top of upstream **v1.2 "Nightvision"**. Nothing upstream was removed.
+
+### Layout and typography control
+
+- **Independent font sizes.** Name, contact line and section headers now use absolute size maps
+  (`NAME_FONT_SIZE_MAP`, `CONTACT_FONT_SIZE_MAP`, `SECTION_HEADER_FONT_SIZE_MAP`) instead of multipliers
+  off the base size, so changing Base or Header size no longer drags the other sizes with it.
+- **Per-section font size override** — any section can override the base size (1–5), validated and clamped server-side.
+- **"Justify Bullet Text" toggle** for justified bullet paragraphs.
+- **A new "Custom" template** (Merriweather serif), alongside the four upstream templates.
+- **Template settings are saved with the resume** on the server instead of only in browser localStorage,
+  so your formatting follows the resume across devices. `mergeTemplateSettings()` keeps older saved
+  settings loading cleanly as new options are added.
+
+### Building a resume without the AI
+
+- **"Create Without AI"** — author a tailored resume by hand, with no LLM call.
+- **Tailor from any resume**, not just the master, via a base-resume picker on `/tailor`.
+- **`POST /resumes/clone-for-job`** — clones a resume against a job with **zero LLM calls** and drops you
+  straight into the Builder. Useful when you have no API credit, or want a deterministic starting point.
+
+### Editing
+
+- **Rich-text cover letters** — paragraphs, lists, and font-size / line-height controls in the Tiptap editor.
+  HTML is sanitised through `sanitizeRichText()`, which allows only safe `font-size` and `line-height`
+  values through the `style` attribute.
+- **Drag to reorder individual bullet points** within a section, not just whole sections.
+
+### Resume data model
+
+- `Experience.secondaryYears` — record a second, non-contiguous stint in the same role.
+- `Education.note` — a short italic footnote, e.g. explaining an extended course duration.
+- **Custom named sub-lists** (`additionalGroups`) inside Additional Info and custom sections.
+
+### Model support and output quality
+
+- **Claude 5 family support** (`claude-opus-5`, `claude-sonnet-5`, `claude-fable-5`) — these models reject the
+  `temperature` parameter, so it is now omitted for them.
+- **Extended AI-phrase "de-slop" filter.** Upstream's phrase blacklist gains `detail-oriented` plus a new
+  regex layer for phrases whose wording varies ("highly motivated" / "highly-motivated"), tidying up the
+  double spaces left behind and still honouring the job-description protection rules.
+
+### Tests and translations
+
+- Around 17 new backend and frontend test files, one per feature above.
+- New UI strings across all six locales (en, es, fr, ja, pt-BR, zh).
+- Backfilled the French locale's missing `interviewPrep` strings — upstream merged French support and the
+  interview-prep workflow separately, which left `fr.json` short of `en.json` and broke `next build`.
 
 ## Getting Started
 
@@ -68,13 +132,19 @@ Follow us on [LinkedIn](https://www.linkedin.com/company/resume-matcher/) for up
 
 Star the repo to support development and get notified of new releases.
 
-## Sponsors
+<a id="sponsors"></a>
+
+## Sponsors — Supporting the Original Project
 
 ![sponsors](assets/sponsors.png)
 
+> Every sponsorship link in this section goes to **Saurabh Rai**, the creator of Resume Matcher.
+> None of them go to this fork or its maintainer. The section is reproduced from the upstream README
+> so the people funding the project keep their credit.
+
 Resume Matcher is free and open-source, kept alive by its sponsors and backers. If it helps you, please consider supporting its development.
 
-### Companies backing Resume Matcher
+### Companies backing Resume Matcher (upstream)
 
 Sponsor at a company tier and **your logo + link + blurb lands here** — in front of a community of **27k+ stars and 4.9k forks**, featured on [Trendshift](https://trendshift.io/repositories/565) and the [Vercel OSS Program](https://vercel.com/oss).
 
@@ -91,7 +161,7 @@ Read the [Sponsorship Guide](https://resumematcher.fyi/docs/sponsoring) for tier
 
 <a id="support-the-development-by-donating"></a>
 
-### Support as an individual
+### Support Saurabh as an individual
 
 ![donate](assets/supporting_resume_matcher.png)
 
@@ -102,9 +172,11 @@ Every bit keeps Resume Matcher free and funds new features — and you'll be tha
 | GitHub    | [![GitHub Sponsors](https://img.shields.io/github/sponsors/srbhr?style=for-the-badge&color=1d4ed8&labelColor=F0F0E8&logo=github&logoColor=black)](https://github.com/sponsors/srbhr) |
 | Buy Me a Coffee | [![BuyMeACoffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&color=1d4ed8&labelColor=F0F0E8&logoColor=black)](https://www.buymeacoffee.com/srbhr) |
 
-## Creators' Note
+## Creator's Note — from Saurabh Rai, the original author
 
 [![srbhr](assets/creators_note.png)](https://srbhr.com)
+
+> Reproduced unchanged from the upstream README. The note and the links below are Saurabh's, not the fork maintainer's.
 
 Thank you for checking out Resume Matcher. If you want to connect, collaborate, or just say hi, feel free to reach out!
 ~ **Saurabh Rai** ✨
@@ -202,8 +274,8 @@ For detailed setup instructions, see **[SETUP.md](SETUP.md)** (English) or: [Esp
 Fastest for MacOS, WSL and Ubuntu users:
 
 ```bash
-# Clone the repository
-git clone https://github.com/srbhr/Resume-Matcher.git
+# Clone this fork
+git clone https://github.com/codie-freeman/Resume-Matcher.git
 cd Resume-Matcher
 
 # Backend (Terminal 1)
@@ -233,22 +305,20 @@ Open **<http://localhost:3000>** and configure your AI provider in Settings.
 
 ### Docker Deployment
 
-Official Docker images are published for `linux/amd64` and `linux/arm64` on:
-
-- `ghcr.io/srbhr/resume-matcher`
-- `srbhr/resume-matcher`
-
-Run on a single public port (`3000`) with API available at `/api`:
+**This fork does not publish Docker images.** The upstream images (`ghcr.io/srbhr/resume-matcher`,
+`srbhr/resume-matcher`) are the *original* project and do **not** contain any of the changes listed above.
+To run this fork in Docker, build it from source:
 
 ```bash
+git clone https://github.com/codie-freeman/Resume-Matcher.git
+cd Resume-Matcher
+docker build -t resume-matcher-fork .
+
 docker run --name resume-matcher \
   -p 3000:3000 \
   -v resume-data:/app/backend/data \
-  ghcr.io/srbhr/resume-matcher:latest
+  resume-matcher-fork
 ```
-
-Prefer pinning a version in production, for example `ghcr.io/srbhr/resume-matcher:1.2.0` or
-`ghcr.io/srbhr/resume-matcher:1.2`.
 
 Endpoints:
 
@@ -264,7 +334,7 @@ Endpoints:
 |-----------|------------|
 | Backend | FastAPI, Python 3.13+, LiteLLM |
 | Frontend | Next.js 16, React 19, TypeScript |
-| Database | TinyDB (JSON file storage) |
+| Database | SQLite (SQLAlchemy + aiosqlite) |
 | Styling | Tailwind CSS 4, Swiss International Style |
 | PDF | Headless Chromium via Playwright |
 
@@ -276,6 +346,26 @@ We welcome contributions from everyone! Whether you're a developer, designer, or
 
 Check out the roadmap if you would like to work on the features that are planned for the future. If you have any suggestions or feature requests, please feel free to open an issue on GitHub and discuss it on our [Discord](https://dsc.gg/resume-matcher) server.
 
+> Contributing to **Resume Matcher itself**? Please open your issue or pull request against the upstream
+> repository, [srbhr/Resume-Matcher](https://github.com/srbhr/Resume-Matcher) — that is where the project
+> is developed. This fork only carries the personal changes listed above.
+
+<a id="license-and-attribution"></a>
+
+## License and Attribution
+
+Resume Matcher is Copyright © Saurabh Rai and the Resume Matcher contributors, licensed under the
+**[Apache License 2.0](LICENSE)**. This fork is distributed under the same licence, unchanged.
+
+- **Original work:** [srbhr/Resume-Matcher](https://github.com/srbhr/Resume-Matcher) by
+  [Saurabh Rai](https://srbhr.com) — [resumematcher.fyi](https://resumematcher.fyi)
+- **This fork:** modifications © 2026 Codie, also under Apache 2.0
+- **Changes made:** files in this repository have been modified from the original; see
+  [What's Different in This Fork](#whats-different-in-this-fork)
+
+Nothing here revokes or narrows the upstream licence. If you want the canonical project, use the
+upstream repository.
+
 <a id="contributors"></a>
 
 ## Contributors
@@ -285,6 +375,9 @@ Check out the roadmap if you would like to work on the features that are planned
 <a href="https://github.com/srbhr/Resume-Matcher/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=srbhr/Resume-Matcher" />
 </a>
+
+These are the people who built Resume Matcher upstream. This fork is maintained by
+[Codie](https://github.com/codie-freeman).
 
 <br/>
 
@@ -296,6 +389,6 @@ Check out the roadmap if you would like to work on the features that are planned
   </picture>
 </details>
 
-## Resume Matcher is a part of [Vercel Open Source Program](https://vercel.com/oss)
+## The upstream Resume Matcher is part of the [Vercel Open Source Program](https://vercel.com/oss)
 
 ![Vercel OSS Program](https://vercel.com/oss/program-badge.svg)

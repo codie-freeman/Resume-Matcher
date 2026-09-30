@@ -63,7 +63,7 @@ pip install uv
 
 ```bash
 # 1. リポジトリをクローン
-git clone https://github.com/srbhr/Resume-Matcher.git
+git clone https://github.com/codie-freeman/Resume-Matcher.git
 cd Resume-Matcher
 
 # 2. バックエンド起動（ターミナル 1）
@@ -93,7 +93,7 @@ npm run dev                  # 開発サーバを起動
 まずはコードを取得します：
 
 ```bash
-git clone https://github.com/srbhr/Resume-Matcher.git
+git clone https://github.com/codie-freeman/Resume-Matcher.git
 cd Resume-Matcher
 ```
 

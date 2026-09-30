@@ -14,6 +14,11 @@
 
 </div>
 
+> **注意 / Note:** 这是 [srbhr/Resume-Matcher](https://github.com/srbhr/Resume-Matcher)（作者
+> [Saurabh Rai](https://srbhr.com)）的修改版分支，文件已相对原项目进行修改。
+> **此翻译尚未同步该分支的改动** ——
+> 请参阅[英文 README](README.md#whats-different-in-this-fork)。
+
 <br>
 
 <div align="center">
@@ -199,7 +204,7 @@ Resume Matcher 是免费且开源的，依靠赞助商与支持者维持运转�
 
 ```bash
 # 克隆仓库
-git clone https://github.com/srbhr/Resume-Matcher.git
+git clone https://github.com/codie-freeman/Resume-Matcher.git
 cd Resume-Matcher
 
 # 后端（终端 1）

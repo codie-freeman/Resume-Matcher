@@ -63,7 +63,7 @@ pip install uv
 
 ```bash
 # 1. 克隆仓库
-git clone https://github.com/srbhr/Resume-Matcher.git
+git clone https://github.com/codie-freeman/Resume-Matcher.git
 cd Resume-Matcher
 
 # 2. 启动后端（终端 1）
@@ -93,7 +93,7 @@ npm run dev                  # 启动开发服务器
 先把代码拉到本机：
 
 ```bash
-git clone https://github.com/srbhr/Resume-Matcher.git
+git clone https://github.com/codie-freeman/Resume-Matcher.git
 cd Resume-Matcher
 ```
 

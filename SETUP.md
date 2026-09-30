@@ -61,7 +61,7 @@ If you're familiar with development tools and want to get running quickly:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/srbhr/Resume-Matcher.git
+git clone https://github.com/codie-freeman/Resume-Matcher.git
 cd Resume-Matcher
 
 # 2. Start the backend (Terminal 1)
@@ -89,7 +89,7 @@ Open your browser to **<http://localhost:3000>** and you're ready to go!
 First, get the code on your machine:
 
 ```bash
-git clone https://github.com/srbhr/Resume-Matcher.git
+git clone https://github.com/codie-freeman/Resume-Matcher.git
 cd Resume-Matcher
 ```
 

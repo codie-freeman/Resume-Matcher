@@ -16,6 +16,12 @@ Esperamos convertir esto en **el VS Code para crear currículums**.
 
 </div>
 
+> **Nota / Note:** Este es un fork modificado de
+> [srbhr/Resume-Matcher](https://github.com/srbhr/Resume-Matcher), creado por
+> [Saurabh Rai](https://srbhr.com). Los archivos han sido modificados respecto al original.
+> **Esta traducción no se ha actualizado con los cambios del fork** — consulta el
+> [README en inglés](README.md#whats-different-in-this-fork) para ver la lista completa.
+
 <br>
 
 <div align="center">
@@ -201,7 +207,7 @@ La forma más rápida (MacOS, WSL y Ubuntu):
 
 ```bash
 # Clona el repositorio
-git clone https://github.com/srbhr/Resume-Matcher.git
+git clone https://github.com/codie-freeman/Resume-Matcher.git
 cd Resume-Matcher
 
 # Backend (Terminal 1)
