@@ -19,6 +19,23 @@ const RichTextEditor = dynamic(
 import { Project } from '@/components/dashboard/resume-component';
 import { Plus, Trash2, Github, Globe } from 'lucide-react';
 import { useTranslations } from '@/lib/i18n';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { DraggableBulletItem } from '../draggable-bullet-item';
+import { DraggableListItem } from '../draggable-list-item';
 
 interface ProjectsFormProps {
   data: Project[];
@@ -27,6 +44,28 @@ interface ProjectsFormProps {
 
 export const ProjectsForm: React.FC<ProjectsFormProps> = ({ data, onChange }) => {
   const { t } = useTranslations();
+
+  // Configure drag-and-drop sensors (used for reordering both projects and their description points)
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Handler for reordering project entries
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = data.findIndex((item) => item.id === active.id);
+    const newIndex = data.findIndex((item) => item.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    onChange(arrayMove(data, oldIndex, newIndex));
+  };
 
   const handleAdd = () => {
     const newId = Math.max(...data.map((d) => d.id), 0) + 1;
@@ -96,6 +135,21 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ data, onChange }) =>
     );
   };
 
+  const handleDescriptionDragEnd = (id: number) => (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = Number(active.id);
+    const newIndex = Number(over.id);
+    onChange(
+      data.map((item) => {
+        if (item.id === id) {
+          return { ...item, description: arrayMove(item.description || [], oldIndex, newIndex) };
+        }
+        return item;
+      })
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-end">
@@ -109,138 +163,159 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ data, onChange }) =>
         </Button>
       </div>
 
-      <div className="space-y-8">
-        {data.map((item) => (
-          <div key={item.id} className="p-6 border border-black bg-paper-tint relative group">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
-              onClick={() => handleRemove(item.id)}
-              aria-label={t('a11y.removeItem')}
-              title={t('a11y.removeItem')}
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
+      {data.length === 0 ? (
+        <div className="text-center py-12 bg-paper-tint border border-dashed border-black">
+          <p className="font-mono text-sm text-steel-grey mb-4">
+            {t('builder.genericItemForm.noEntries', { label: t('resume.sections.projects') })}
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleAdd}
+            className="rounded-none border-black"
+          >
+            <Plus className="w-4 h-4 mr-2" /> {t('builder.forms.projects.addFirstProject')}
+          </Button>
+        </div>
+      ) : (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext
+            items={data.map((item) => item.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-8">
+              {data.map((item) => (
+                <DraggableListItem key={item.id} id={item.id}>
+                  <div className="p-6 border border-black bg-paper-tint relative group">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => handleRemove(item.id)}
+                      aria-label={t('a11y.removeItem')}
+                      title={t('a11y.removeItem')}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 pr-8">
-              <div className="space-y-2">
-                <Label className="font-mono text-xs uppercase tracking-wider text-steel-grey">
-                  {t('builder.forms.projects.fields.projectName')}
-                </Label>
-                <Input
-                  value={item.name || ''}
-                  onChange={(e) => handleChange(item.id, 'name', e.target.value)}
-                  placeholder={t('builder.forms.projects.placeholders.projectName')}
-                  className="rounded-none border-black bg-white"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="font-mono text-xs uppercase tracking-wider text-steel-grey">
-                  {t('builder.forms.projects.fields.role')}
-                </Label>
-                <Input
-                  value={item.role || ''}
-                  onChange={(e) => handleChange(item.id, 'role', e.target.value)}
-                  placeholder={t('builder.forms.projects.placeholders.role')}
-                  className="rounded-none border-black bg-white"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="font-mono text-xs uppercase tracking-wider text-steel-grey">
-                  {t('builder.genericItemForm.fields.years')}{' '}
-                  <span className="text-steel-grey">({t('common.optional')})</span>
-                </Label>
-                <Input
-                  value={item.years || ''}
-                  onChange={(e) => handleChange(item.id, 'years', e.target.value)}
-                  placeholder={t('builder.forms.projects.placeholders.years')}
-                  className="rounded-none border-black bg-white"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="font-mono text-xs uppercase tracking-wider text-steel-grey">
-                  <Github className="w-3 h-3 inline mr-1" />
-                  GitHub <span className="text-steel-grey">({t('common.optional')})</span>
-                </Label>
-                <Input
-                  value={item.github || ''}
-                  onChange={(e) => handleChange(item.id, 'github', e.target.value)}
-                  placeholder={t('builder.forms.projects.placeholders.github')}
-                  className="rounded-none border-black bg-white"
-                />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label className="font-mono text-xs uppercase tracking-wider text-steel-grey">
-                  <Globe className="w-3 h-3 inline mr-1" />
-                  {t('builder.forms.projects.fields.website')}{' '}
-                  <span className="text-steel-grey">({t('common.optional')})</span>
-                </Label>
-                <Input
-                  value={item.website || ''}
-                  onChange={(e) => handleChange(item.id, 'website', e.target.value)}
-                  placeholder={t('builder.forms.projects.placeholders.website')}
-                  className="rounded-none border-black bg-white"
-                />
-              </div>
-            </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 pr-8">
+                      <div className="space-y-2">
+                        <Label className="font-mono text-xs uppercase tracking-wider text-steel-grey">
+                          {t('builder.forms.projects.fields.projectName')}
+                        </Label>
+                        <Input
+                          value={item.name || ''}
+                          onChange={(e) => handleChange(item.id, 'name', e.target.value)}
+                          placeholder={t('builder.forms.projects.placeholders.projectName')}
+                          className="rounded-none border-black bg-white"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-mono text-xs uppercase tracking-wider text-steel-grey">
+                          {t('builder.forms.projects.fields.role')}
+                        </Label>
+                        <Input
+                          value={item.role || ''}
+                          onChange={(e) => handleChange(item.id, 'role', e.target.value)}
+                          placeholder={t('builder.forms.projects.placeholders.role')}
+                          className="rounded-none border-black bg-white"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-mono text-xs uppercase tracking-wider text-steel-grey">
+                          {t('builder.genericItemForm.fields.years')}{' '}
+                          <span className="text-steel-grey">({t('common.optional')})</span>
+                        </Label>
+                        <Input
+                          value={item.years || ''}
+                          onChange={(e) => handleChange(item.id, 'years', e.target.value)}
+                          placeholder={t('builder.forms.projects.placeholders.years')}
+                          className="rounded-none border-black bg-white"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-mono text-xs uppercase tracking-wider text-steel-grey">
+                          <Github className="w-3 h-3 inline mr-1" />
+                          GitHub <span className="text-steel-grey">({t('common.optional')})</span>
+                        </Label>
+                        <Input
+                          value={item.github || ''}
+                          onChange={(e) => handleChange(item.id, 'github', e.target.value)}
+                          placeholder={t('builder.forms.projects.placeholders.github')}
+                          className="rounded-none border-black bg-white"
+                        />
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label className="font-mono text-xs uppercase tracking-wider text-steel-grey">
+                          <Globe className="w-3 h-3 inline mr-1" />
+                          {t('builder.forms.projects.fields.website')}{' '}
+                          <span className="text-steel-grey">({t('common.optional')})</span>
+                        </Label>
+                        <Input
+                          value={item.website || ''}
+                          onChange={(e) => handleChange(item.id, 'website', e.target.value)}
+                          placeholder={t('builder.forms.projects.placeholders.website')}
+                          className="rounded-none border-black bg-white"
+                        />
+                      </div>
+                    </div>
 
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <Label className="font-mono text-xs uppercase tracking-wider text-steel-grey">
-                  {t('builder.genericItemForm.fields.descriptionPoints')}
-                </Label>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleAddDescription(item.id)}
-                  className="h-6 text-xs text-blue-700 hover:text-blue-800 hover:bg-blue-50"
-                >
-                  <Plus className="w-3 h-3 mr-1" /> {t('builder.genericItemForm.actions.addPoint')}
-                </Button>
-              </div>
-              {item.description?.map((desc, idx) => (
-                <div key={idx} className="flex gap-2">
-                  <div className="flex-1">
-                    <RichTextEditor
-                      value={desc}
-                      onChange={(html) => handleDescriptionChange(item.id, idx, html)}
-                      placeholder={t('builder.forms.projects.placeholders.description')}
-                      minHeight="60px"
-                    />
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <Label className="font-mono text-xs uppercase tracking-wider text-steel-grey">
+                          {t('builder.genericItemForm.fields.descriptionPoints')}
+                        </Label>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleAddDescription(item.id)}
+                          className="h-6 text-xs text-blue-700 hover:text-blue-800 hover:bg-blue-50"
+                        >
+                          <Plus className="w-3 h-3 mr-1" />{' '}
+                          {t('builder.genericItemForm.actions.addPoint')}
+                        </Button>
+                      </div>
+                      <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleDescriptionDragEnd(item.id)}
+                      >
+                        <SortableContext
+                          items={(item.description || []).map((_, idx) => idx)}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          {item.description?.map((desc, idx) => (
+                            <DraggableBulletItem key={idx} id={idx}>
+                              <div className="flex-1">
+                                <RichTextEditor
+                                  value={desc}
+                                  onChange={(html) => handleDescriptionChange(item.id, idx, html)}
+                                  placeholder={t('builder.forms.projects.placeholders.description')}
+                                  minHeight="60px"
+                                />
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleRemoveDescription(item.id, idx)}
+                                className="h-[60px] w-8 text-muted-foreground hover:text-destructive self-end"
+                                aria-label={t('a11y.removeDescription')}
+                                title={t('a11y.removeDescription')}
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </DraggableBulletItem>
+                          ))}
+                        </SortableContext>
+                      </DndContext>
+                    </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleRemoveDescription(item.id, idx)}
-                    className="h-[60px] w-8 text-muted-foreground hover:text-destructive self-end"
-                    aria-label={t('a11y.removeDescription')}
-                    title={t('a11y.removeDescription')}
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
-                </div>
+                </DraggableListItem>
               ))}
             </div>
-          </div>
-        ))}
-
-        {data.length === 0 && (
-          <div className="text-center py-12 bg-paper-tint border border-dashed border-black">
-            <p className="font-mono text-sm text-steel-grey mb-4">
-              {t('builder.genericItemForm.noEntries', { label: t('resume.sections.projects') })}
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleAdd}
-              className="rounded-none border-black"
-            >
-              <Plus className="w-4 h-4 mr-2" /> {t('builder.forms.projects.addFirstProject')}
-            </Button>
-          </div>
-        )}
-      </div>
+          </SortableContext>
+        </DndContext>
+      )}
     </div>
   );
 };

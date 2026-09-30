@@ -50,6 +50,7 @@ interface ProcessedResume {
     certificationsTraining?: string[];
     awards?: string[];
   };
+  templateSettings?: TemplateSettings;
 }
 
 interface ResumeResponse {
@@ -199,6 +200,25 @@ export async function fetchResume(resumeId: string): Promise<ResumeResponse['dat
   return payload.data;
 }
 
+/**
+ * Creates a tailored resume for a job with zero LLM calls — an exact copy of
+ * the master resume's content, linked to the job the same way an AI-tailored
+ * resume is, so it behaves identically everywhere else in the app (viewer,
+ * builder, tracker, on-demand cover letter/interview prep/JD match).
+ */
+export async function cloneResumeForJob(
+  resumeId: string,
+  jobId: string
+): Promise<ResumeResponse['data']> {
+  const res = await apiPost('/resumes/clone-for-job', { resume_id: resumeId, job_id: jobId });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Failed to create resume (status ${res.status}): ${text}`);
+  }
+  const payload = (await res.json()) as ResumeResponse;
+  return payload.data;
+}
+
 export async function fetchResumeList(includeMaster = false): Promise<ResumeListItem[]> {
   const res = await apiFetch(`/resumes/list?include_master=${includeMaster ? 'true' : 'false'}`);
   if (!res.ok) {
@@ -241,10 +261,13 @@ export function getResumePdfUrl(
     params.set('lineHeight', String(settings.spacing.lineHeight));
     params.set('fontSize', String(settings.fontSize.base));
     params.set('headerScale', String(settings.fontSize.headerScale));
+    params.set('nameSize', String(settings.fontSize.nameSize));
+    params.set('contactSize', String(settings.fontSize.contactSize));
     params.set('headerFont', settings.fontSize.headerFont);
     params.set('bodyFont', settings.fontSize.bodyFont);
     params.set('compactMode', String(settings.compactMode));
     params.set('showContactIcons', String(settings.showContactIcons));
+    params.set('justifyBullets', String(settings.justifyBullets));
     params.set('accentColor', settings.accentColor);
   } else {
     params.set('template', 'swiss-single');

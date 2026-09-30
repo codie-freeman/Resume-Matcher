@@ -13,6 +13,7 @@ import {
   retryProcessing,
   renameResume,
 } from '@/lib/api/resume';
+import { mergeTemplateSettings } from '@/lib/types/template-settings';
 import { useStatusCache } from '@/lib/context/status-cache';
 import {
   ArrowLeft,
@@ -61,6 +62,13 @@ export default function ResumeViewerPage() {
     if (!resumeData) return null;
     return withLocalizedDefaultSections(resumeData, t);
   }, [resumeData, t]);
+
+  // Use the resume's own saved formatting (template, fonts, spacing, etc.)
+  // rather than always falling back to the default template.
+  const templateSettings = useMemo(
+    () => mergeTemplateSettings(resumeData?.templateSettings ?? {}),
+    [resumeData?.templateSettings]
+  );
 
   useEffect(() => {
     if (!resumeId) return;
@@ -181,14 +189,14 @@ export default function ResumeViewerPage() {
   const handleDownload = async () => {
     setIsDownloading(true);
     try {
-      const blob = await downloadResumePdf(resumeId, undefined, uiLanguage);
+      const blob = await downloadResumePdf(resumeId, templateSettings, uiLanguage);
       const filename = sanitizeFilename(resumeTitle, resumeId, 'resume');
       downloadBlobAsFile(blob, filename);
       setShowDownloadSuccessDialog(true);
     } catch (err) {
       console.error('Failed to download resume:', err);
       if (err instanceof TypeError && err.message.includes('Failed to fetch')) {
-        const fallbackUrl = getResumePdfUrl(resumeId, undefined, uiLanguage);
+        const fallbackUrl = getResumePdfUrl(resumeId, templateSettings, uiLanguage);
         const didOpen = openUrlInNewTab(fallbackUrl);
         if (!didOpen) {
           alert(t('common.popupBlocked', { url: fallbackUrl }));
@@ -429,6 +437,7 @@ export default function ResumeViewerPage() {
           <div className="resume-print w-full max-w-[250mm] shadow-sw-lg border-2 border-black bg-white">
             <Resume
               resumeData={localizedResumeData || resumeData}
+              settings={templateSettings}
               additionalSectionLabels={{
                 technicalSkills: t('resume.additionalLabels.technicalSkills'),
                 languages: t('resume.additionalLabels.languages'),

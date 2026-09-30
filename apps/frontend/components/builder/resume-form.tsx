@@ -40,6 +40,7 @@ import {
   createCustomSection,
   DEFAULT_SECTION_META,
 } from '@/lib/utils/section-helpers';
+import type { SpacingLevel } from '@/lib/types/template-settings';
 import { useTranslations } from '@/lib/i18n';
 
 interface ResumeFormProps {
@@ -126,6 +127,12 @@ export const ResumeForm: React.FC<ResumeFormProps> = ({ resumeData, onUpdate }) 
     const updatedSections = allSections.map((s) =>
       s.id === sectionId ? { ...s, isVisible: !s.isVisible } : s
     );
+    handleSectionMetaUpdate(updatedSections);
+  };
+
+  // Handler for the per-section font-size override (undefined = use Base)
+  const handleFontSizeChange = (sectionId: string, fontSize: SpacingLevel | undefined) => {
+    const updatedSections = allSections.map((s) => (s.id === sectionId ? { ...s, fontSize } : s));
     handleSectionMetaUpdate(updatedSections);
   };
 
@@ -288,6 +295,7 @@ export const ResumeForm: React.FC<ResumeFormProps> = ({ resumeData, onUpdate }) 
         onMoveUp={() => handleMoveUp(section.id)}
         onMoveDown={() => handleMoveDown(section.id)}
         onToggleVisibility={() => handleToggleVisibility(section.id)}
+        onFontSizeChange={(size) => handleFontSizeChange(section.id, size)}
         isFirst={isFirst}
         isLast={isLast}
         canDelete={true}
@@ -346,6 +354,8 @@ export const ResumeForm: React.FC<ResumeFormProps> = ({ resumeData, onUpdate }) 
               onChange={(strings) => updateCustomSection({ strings })}
               label={t('builder.customSections.itemsLabel')}
               placeholder={t('builder.customSections.itemsPlaceholder')}
+              additionalGroups={customSection?.additionalGroups}
+              onGroupsChange={(additionalGroups) => updateCustomSection({ additionalGroups })}
             />
           );
 
@@ -366,6 +376,7 @@ export const ResumeForm: React.FC<ResumeFormProps> = ({ resumeData, onUpdate }) 
         onMoveUp={() => handleMoveUp(section.id)}
         onMoveDown={() => handleMoveDown(section.id)}
         onToggleVisibility={() => handleToggleVisibility(section.id)}
+        onFontSizeChange={(size) => handleFontSizeChange(section.id, size)}
         isFirst={isFirst}
         isLast={isLast}
         canDelete={true}

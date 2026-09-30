@@ -5,7 +5,9 @@
  * getting default sections, sorting, and managing custom sections.
  */
 
+import type { CSSProperties } from 'react';
 import type { ResumeData, SectionMeta, SectionType } from '@/components/dashboard/resume-component';
+import { FONT_SIZE_MAP } from '@/lib/types/template-settings';
 
 export type TranslationFunction = (key: string, params?: Record<string, string | number>) => string;
 
@@ -179,4 +181,18 @@ export function createCustomSection(
     isVisible: true,
     order: maxOrder + 1,
   };
+}
+
+/**
+ * Style to apply to a section's wrapper element when it has a custom
+ * fontSize override. Redefining --font-size-base at this level cascades to
+ * every body-content rule in the section's subtree (they all derive from
+ * --font-size-base), without touching the section's own heading (driven
+ * separately by --section-header-font-size) or affecting sibling sections.
+ * Returns undefined when no override is set, so the section simply inherits
+ * the global Base size.
+ */
+export function getSectionFontSizeStyle(section: SectionMeta): CSSProperties | undefined {
+  if (!section.fontSize) return undefined;
+  return { '--font-size-base': FONT_SIZE_MAP[section.fontSize] } as CSSProperties;
 }

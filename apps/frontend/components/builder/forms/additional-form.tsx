@@ -4,6 +4,7 @@ import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { AdditionalInfo } from '@/components/dashboard/resume-component';
+import { AdditionalGroupsEditor } from './additional-groups-editor';
 import { useTranslations } from '@/lib/i18n';
 
 interface AdditionalFormProps {
@@ -109,6 +110,13 @@ export const AdditionalForm: React.FC<AdditionalFormProps> = ({ data, onChange }
             className="min-h-[120px] text-black rounded-none border-black bg-white focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-blue-700"
           />
         </div>
+      </div>
+
+      <div className="pt-4 border-t border-black">
+        <AdditionalGroupsEditor
+          groups={data.additionalGroups ?? []}
+          onChange={(additionalGroups) => onChange({ ...data, additionalGroups })}
+        />
       </div>
     </div>
   );

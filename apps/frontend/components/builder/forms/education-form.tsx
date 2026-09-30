@@ -67,6 +67,7 @@ export const EducationForm: React.FC<EducationFormProps> = ({ data, onChange }) 
         degree: '',
         years: '',
         description: '',
+        note: '',
       },
     ]);
   };
@@ -168,6 +169,18 @@ export const EducationForm: React.FC<EducationFormProps> = ({ data, onChange }) 
                           className="rounded-none border-black bg-white"
                         />
                       </div>
+                    </div>
+
+                    <div className="space-y-2 mb-4">
+                      <Label className="font-mono text-xs uppercase tracking-wider text-steel-grey">
+                        {t('builder.forms.education.fields.note')}
+                      </Label>
+                      <Input
+                        value={item.note || ''}
+                        onChange={(e) => handleChange(item.id, 'note', e.target.value)}
+                        placeholder={t('builder.forms.education.placeholders.note')}
+                        className="rounded-none border-black bg-white italic"
+                      />
                     </div>
 
                     <div className="space-y-2">

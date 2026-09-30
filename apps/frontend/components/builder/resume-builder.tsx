@@ -49,7 +49,11 @@ import { JDComparisonView } from './jd-comparison-view';
 import { RegenerateWizard } from './regenerate-wizard';
 import { useRegenerateWizard } from '@/hooks/use-regenerate-wizard';
 import { useTranslations } from '@/lib/i18n';
-import { type TemplateSettings, DEFAULT_TEMPLATE_SETTINGS } from '@/lib/types/template-settings';
+import {
+  type TemplateSettings,
+  DEFAULT_TEMPLATE_SETTINGS,
+  mergeTemplateSettings,
+} from '@/lib/types/template-settings';
 import { withLocalizedDefaultSections } from '@/lib/utils/section-helpers';
 import { useLanguage } from '@/lib/context/language-context';
 import { buildResumeFilename, downloadBlobAsFile, openUrlInNewTab } from '@/lib/utils/download';
@@ -157,6 +161,10 @@ const ResumeBuilderContent = () => {
   // Cover letter & outreach state
   const [coverLetter, setCoverLetter] = useState('');
   const [outreachMessage, setOutreachMessage] = useState('');
+  // Opts into the (empty) manual editor without requiring AI-generated
+  // content first — content itself may still be '' until the user types.
+  const [isCoverLetterManualDraft, setIsCoverLetterManualDraft] = useState(false);
+  const [isOutreachManualDraft, setIsOutreachManualDraft] = useState(false);
   const [interviewPrep, setInterviewPrep] = useState<InterviewPrepData | null>(null);
   const [isCoverLetterSaving, setIsCoverLetterSaving] = useState(false);
   const [isOutreachSaving, setIsOutreachSaving] = useState(false);
@@ -269,13 +277,7 @@ const ResumeBuilderContent = () => {
     if (savedSettings) {
       try {
         const parsed = JSON.parse(savedSettings);
-        setTemplateSettings({
-          ...DEFAULT_TEMPLATE_SETTINGS,
-          ...parsed,
-          margins: { ...DEFAULT_TEMPLATE_SETTINGS.margins, ...parsed.margins },
-          spacing: { ...DEFAULT_TEMPLATE_SETTINGS.spacing, ...parsed.spacing },
-          fontSize: { ...DEFAULT_TEMPLATE_SETTINGS.fontSize, ...parsed.fontSize },
-        });
+        setTemplateSettings(mergeTemplateSettings(parsed));
       } catch {
         // Use defaults
       }
@@ -322,8 +324,15 @@ const ResumeBuilderContent = () => {
           setInterviewPrepError(null);
           // Prefer processed_resume if available
           if (data.processed_resume) {
-            setResumeData(data.processed_resume as ResumeData);
-            setLastSavedData(data.processed_resume as ResumeData);
+            const loaded = data.processed_resume as ResumeData;
+            setResumeData(loaded);
+            setLastSavedData(loaded);
+            // This resume's own saved formatting takes priority over
+            // whatever's in localStorage (a same-browser, cross-resume
+            // fallback for drafts that haven't been saved yet).
+            if (loaded.templateSettings) {
+              setTemplateSettings(mergeTemplateSettings(loaded.templateSettings));
+            }
             setLoadingState('loaded');
             return;
           }
@@ -438,6 +447,7 @@ const ResumeBuilderContent = () => {
 
   const handleSettingsChange = useCallback((newSettings: TemplateSettings) => {
     setTemplateSettings(newSettings);
+    setHasUnsavedChanges(true);
   }, []);
 
   const handleSave = async () => {
@@ -447,7 +457,11 @@ const ResumeBuilderContent = () => {
     }
     try {
       setIsSaving(true);
-      const updated = await updateResume(resumeId, resumeData);
+      // Persist formatting (template, fonts, spacing, margins, etc.) alongside
+      // content so it survives Save instead of only living in this browser's
+      // localStorage — otherwise re-opening or downloading the resume from
+      // anywhere else reverts to the default template.
+      const updated = await updateResume(resumeId, { ...resumeData, templateSettings });
       const nextData = (updated.processed_resume || resumeData) as ResumeData;
       setResumeData(nextData);
       setLastSavedData(nextData);
@@ -641,6 +655,16 @@ const ResumeBuilderContent = () => {
     doGenerateOutreach();
   };
 
+  // Skip AI entirely and open an empty, manually-editable draft — for
+  // resumes created without AI (or anyone who'd rather just type it).
+  const handleWriteCoverLetterManually = () => {
+    setIsCoverLetterManualDraft(true);
+  };
+
+  const handleWriteOutreachManually = () => {
+    setIsOutreachManualDraft(true);
+  };
+
   const canGenerateInterviewPrep =
     Boolean(resumeId) && isTailoredResume && jobContextStatus === 'available';
 
@@ -781,7 +805,7 @@ const ResumeBuilderContent = () => {
               )}
 
               {/* Cover letter tab actions */}
-              {activeTab === 'cover-letter' && coverLetter && (
+              {activeTab === 'cover-letter' && (coverLetter || isCoverLetterManualDraft) && (
                 <>
                   <Button
                     variant="outline"
@@ -809,7 +833,7 @@ const ResumeBuilderContent = () => {
               )}
 
               {/* Outreach tab actions */}
-              {activeTab === 'outreach' && outreachMessage && (
+              {activeTab === 'outreach' && (outreachMessage || isOutreachManualDraft) && (
                 <>
                   <Button
                     variant="outline"
@@ -886,7 +910,7 @@ const ResumeBuilderContent = () => {
 
               {/* Cover Letter Editor */}
               {activeTab === 'cover-letter' &&
-                (coverLetter ? (
+                (coverLetter || isCoverLetterManualDraft ? (
                   <CoverLetterEditor
                     content={coverLetter}
                     onChange={setCoverLetter}
@@ -898,13 +922,14 @@ const ResumeBuilderContent = () => {
                     type="cover-letter"
                     isGenerating={isGeneratingCoverLetter}
                     onGenerate={handleGenerateCoverLetter}
+                    onWriteManually={handleWriteCoverLetterManually}
                     isTailoredResume={isTailoredResume}
                   />
                 ))}
 
               {/* Outreach Editor */}
               {activeTab === 'outreach' &&
-                (outreachMessage ? (
+                (outreachMessage || isOutreachManualDraft ? (
                   <OutreachEditor
                     content={outreachMessage}
                     onChange={setOutreachMessage}
@@ -916,6 +941,7 @@ const ResumeBuilderContent = () => {
                     type="outreach"
                     isGenerating={isGeneratingOutreach}
                     onGenerate={handleGenerateOutreach}
+                    onWriteManually={handleWriteOutreachManually}
                     isTailoredResume={isTailoredResume}
                   />
                 ))}
@@ -995,12 +1021,12 @@ const ResumeBuilderContent = () => {
                   {
                     id: 'cover-letter',
                     label: t('builder.previewTabs.coverLetter'),
-                    disabled: !coverLetter,
+                    disabled: !isTailoredResume,
                   },
                   {
                     id: 'outreach',
                     label: t('builder.previewTabs.outreach'),
-                    disabled: !outreachMessage,
+                    disabled: !isTailoredResume,
                   },
                   {
                     id: 'interview-prep',
@@ -1030,7 +1056,7 @@ const ResumeBuilderContent = () => {
 
               {/* Cover Letter Preview */}
               {activeTab === 'cover-letter' &&
-                (coverLetter && resumeData.personalInfo ? (
+                ((coverLetter || isCoverLetterManualDraft) && resumeData.personalInfo ? (
                   <div className="p-6">
                     <CoverLetterPreview
                       content={coverLetter}
@@ -1043,13 +1069,14 @@ const ResumeBuilderContent = () => {
                     type="cover-letter"
                     isGenerating={isGeneratingCoverLetter}
                     onGenerate={handleGenerateCoverLetter}
+                    onWriteManually={handleWriteCoverLetterManually}
                     isTailoredResume={isTailoredResume}
                   />
                 ))}
 
               {/* Outreach Preview */}
               {activeTab === 'outreach' &&
-                (outreachMessage ? (
+                (outreachMessage || isOutreachManualDraft ? (
                   <div className="p-6">
                     <OutreachPreview content={outreachMessage} />
                   </div>
@@ -1058,6 +1085,7 @@ const ResumeBuilderContent = () => {
                     type="outreach"
                     isGenerating={isGeneratingOutreach}
                     onGenerate={handleGenerateOutreach}
+                    onWriteManually={handleWriteOutreachManually}
                     isTailoredResume={isTailoredResume}
                   />
                 ))}
@@ -1102,7 +1130,8 @@ const ResumeBuilderContent = () => {
                 {templateSettings.template === 'swiss-single' ||
                 templateSettings.template === 'modern' ||
                 templateSettings.template === 'latex' ||
-                templateSettings.template === 'clean'
+                templateSettings.template === 'clean' ||
+                templateSettings.template === 'custom'
                   ? t('builder.footer.singleColumn')
                   : t('builder.footer.twoColumn')}
               </span>

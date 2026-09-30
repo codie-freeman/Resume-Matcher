@@ -36,6 +36,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { DraggableListItem } from '../draggable-list-item';
+import { DraggableBulletItem } from '../draggable-bullet-item';
 
 interface ExperienceFormProps {
   data: Experience[];
@@ -79,6 +80,7 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ data, onChange }
         company: '',
         location: '',
         years: '',
+        secondaryYears: '',
         description: [''],
       },
     ]);
@@ -130,6 +132,21 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ data, onChange }
           const newDesc = [...(item.description || [])];
           newDesc.splice(index, 1);
           return { ...item, description: newDesc };
+        }
+        return item;
+      })
+    );
+  };
+
+  const handleDescriptionDragEnd = (id: number) => (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = Number(active.id);
+    const newIndex = Number(over.id);
+    onChange(
+      data.map((item) => {
+        if (item.id === id) {
+          return { ...item, description: arrayMove(item.description || [], oldIndex, newIndex) };
         }
         return item;
       })
@@ -229,6 +246,20 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ data, onChange }
                           className="rounded-none border-black bg-white"
                         />
                       </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label className="font-mono text-xs uppercase tracking-wider text-steel-grey">
+                          {t('builder.forms.experience.fields.secondaryYears')}
+                        </Label>
+                        <Input
+                          value={item.secondaryYears || ''}
+                          onChange={(e) => handleChange(item.id, 'secondaryYears', e.target.value)}
+                          placeholder={t('builder.forms.experience.placeholders.secondaryYears')}
+                          className="rounded-none border-black bg-white"
+                        />
+                        <p className="font-mono text-[10px] text-steel-grey">
+                          {t('builder.forms.experience.hints.secondaryYears')}
+                        </p>
+                      </div>
                     </div>
 
                     <div className="space-y-3">
@@ -246,28 +277,41 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ data, onChange }
                           {t('builder.genericItemForm.actions.addPoint')}
                         </Button>
                       </div>
-                      {item.description?.map((desc, idx) => (
-                        <div key={idx} className="flex gap-2">
-                          <div className="flex-1">
-                            <RichTextEditor
-                              value={desc}
-                              onChange={(html) => handleDescriptionChange(item.id, idx, html)}
-                              placeholder={t('builder.forms.experience.placeholders.description')}
-                              minHeight="60px"
-                            />
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleRemoveDescription(item.id, idx)}
-                            className="h-[60px] w-8 text-muted-foreground hover:text-destructive self-end"
-                            aria-label={t('a11y.removeDescription')}
-                            title={t('a11y.removeDescription')}
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      ))}
+                      <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleDescriptionDragEnd(item.id)}
+                      >
+                        <SortableContext
+                          items={(item.description || []).map((_, idx) => idx)}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          {item.description?.map((desc, idx) => (
+                            <DraggableBulletItem key={idx} id={idx}>
+                              <div className="flex-1">
+                                <RichTextEditor
+                                  value={desc}
+                                  onChange={(html) => handleDescriptionChange(item.id, idx, html)}
+                                  placeholder={t(
+                                    'builder.forms.experience.placeholders.description'
+                                  )}
+                                  minHeight="60px"
+                                />
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleRemoveDescription(item.id, idx)}
+                                className="h-[60px] w-8 text-muted-foreground hover:text-destructive self-end"
+                                aria-label={t('a11y.removeDescription')}
+                                title={t('a11y.removeDescription')}
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </DraggableBulletItem>
+                          ))}
+                        </SortableContext>
+                      </DndContext>
                     </div>
                   </div>
                 </DraggableListItem>

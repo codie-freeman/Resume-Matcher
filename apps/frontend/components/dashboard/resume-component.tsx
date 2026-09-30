@@ -7,10 +7,12 @@ import {
   ResumeLatex,
   ResumeClean,
   ResumeVivid,
+  ResumeCustom,
 } from '@/components/resume';
 import {
   type TemplateSettings,
   type TemplateType,
+  type SpacingLevel,
   DEFAULT_TEMPLATE_SETTINGS,
   settingsToCssVars,
 } from '@/lib/types/template-settings';
@@ -33,6 +35,10 @@ export interface Experience {
   company?: string;
   location?: string;
   years?: string;
+  // A second, non-contiguous employment period at the same role/company
+  // (e.g. left and later rejoined). Rendered as an extra date line below
+  // the primary `years` range; omitted when there's only one period.
+  secondaryYears?: string;
   description?: string[];
 }
 
@@ -42,6 +48,7 @@ export interface Education {
   degree?: string;
   years?: string;
   description?: string;
+  note?: string; // Short italic footnote under the entry (e.g. justifying an extended duration)
 }
 
 export interface Project {
@@ -54,8 +61,18 @@ export interface Project {
   description?: string[];
 }
 
+// A freeform named section (e.g. "Publications", "Volunteer Work", another
+// "Languages" group) rendered inline within the Skills & Awards block,
+// alongside the fixed technicalSkills/languages/certifications/awards fields.
+export interface AdditionalGroup {
+  id: string;
+  label: string;
+  items: string[];
+}
+
 export interface AdditionalInfo {
   technicalSkills?: string[];
+  additionalGroups?: AdditionalGroup[];
   languages?: string[];
   certificationsTraining?: string[];
   awards?: string[];
@@ -96,6 +113,7 @@ export interface SectionMeta {
   isDefault: boolean; // True for built-in sections
   isVisible: boolean; // Whether to show in resume
   order: number; // Display order (0 = first after personalInfo)
+  fontSize?: SpacingLevel; // Optional override of the global Base size for this section's content only
 }
 
 // Generic item for custom item-based sections
@@ -113,6 +131,7 @@ export interface CustomSection {
   sectionType: SectionType;
   items?: CustomSectionItem[]; // For itemList type
   strings?: string[]; // For stringList type
+  additionalGroups?: AdditionalGroup[]; // Freeform named sub-lists (stringList type only)
   text?: string; // For text type
 }
 
@@ -126,6 +145,10 @@ export interface ResumeData {
   // NEW: Section metadata and custom sections
   sectionMeta?: SectionMeta[];
   customSections?: Record<string, CustomSection>;
+  // Template/formatting config, persisted with the resume so it survives
+  // Save and shows correctly anywhere the resume is opened or downloaded
+  // from (not just the same browser's Builder session).
+  templateSettings?: TemplateSettings;
 }
 
 interface ResumeProps {
@@ -148,6 +171,7 @@ interface ResumeProps {
  * - swiss-two-column: Two-column layout with experience sidebar
  * - modern: Single-column with user-selectable accent colors
  * - modern-two-column: Two-column layout with modern colorful accents
+ * - custom: Clean layout set in the Merriweather serif typeface
  */
 const Resume: React.FC<ResumeProps> = ({
   resumeData,
@@ -183,6 +207,7 @@ const Resume: React.FC<ResumeProps> = ({
         <ResumeSingleColumn
           data={resumeData}
           showContactIcons={mergedSettings.showContactIcons}
+          justifyBullets={mergedSettings.justifyBullets}
           additionalSectionLabels={additionalSectionLabels}
         />
       )}
@@ -190,6 +215,7 @@ const Resume: React.FC<ResumeProps> = ({
         <ResumeTwoColumn
           data={resumeData}
           showContactIcons={mergedSettings.showContactIcons}
+          justifyBullets={mergedSettings.justifyBullets}
           sectionHeadings={sectionHeadings}
         />
       )}
@@ -197,6 +223,7 @@ const Resume: React.FC<ResumeProps> = ({
         <ResumeModern
           data={resumeData}
           showContactIcons={mergedSettings.showContactIcons}
+          justifyBullets={mergedSettings.justifyBullets}
           additionalSectionLabels={additionalSectionLabels}
         />
       )}
@@ -204,6 +231,7 @@ const Resume: React.FC<ResumeProps> = ({
         <ResumeModernTwoColumn
           data={resumeData}
           showContactIcons={mergedSettings.showContactIcons}
+          justifyBullets={mergedSettings.justifyBullets}
           sectionHeadings={sectionHeadings}
           fallbackLabels={fallbackLabels}
         />
@@ -212,6 +240,7 @@ const Resume: React.FC<ResumeProps> = ({
         <ResumeLatex
           data={resumeData}
           showContactIcons={mergedSettings.showContactIcons}
+          justifyBullets={mergedSettings.justifyBullets}
           additionalSectionLabels={additionalSectionLabels}
         />
       )}
@@ -219,6 +248,7 @@ const Resume: React.FC<ResumeProps> = ({
         <ResumeClean
           data={resumeData}
           showContactIcons={mergedSettings.showContactIcons}
+          justifyBullets={mergedSettings.justifyBullets}
           additionalSectionLabels={additionalSectionLabels}
         />
       )}
@@ -226,8 +256,17 @@ const Resume: React.FC<ResumeProps> = ({
         <ResumeVivid
           data={resumeData}
           showContactIcons={mergedSettings.showContactIcons}
+          justifyBullets={mergedSettings.justifyBullets}
           sectionHeadings={sectionHeadings}
           fallbackLabels={fallbackLabels}
+        />
+      )}
+      {mergedSettings.template === 'custom' && (
+        <ResumeCustom
+          data={resumeData}
+          showContactIcons={mergedSettings.showContactIcons}
+          justifyBullets={mergedSettings.justifyBullets}
+          additionalSectionLabels={additionalSectionLabels}
         />
       )}
     </div>
