@@ -5,7 +5,12 @@ import type {
   ResumeSectionHeadings,
   ResumeFallbackLabels,
 } from '@/components/dashboard/resume-component';
-import { getSortedSections, getSectionMeta } from '@/lib/utils/section-helpers';
+import {
+  getSortedSections,
+  getSectionMeta,
+  getSectionFontSizeStyle,
+} from '@/lib/utils/section-helpers';
+import { getVisibleAdditionalGroups } from '@/lib/utils/additional-groups';
 import { formatDateRange } from '@/lib/utils';
 import { DynamicResumeSection } from './dynamic-resume-section';
 import { SafeHtml } from './safe-html';
@@ -15,6 +20,7 @@ import styles from './styles/modern-two-column.module.css';
 interface ResumeModernTwoColumnProps {
   data: ResumeData;
   showContactIcons?: boolean;
+  justifyBullets?: boolean;
   sectionHeadings?: Partial<ResumeSectionHeadings>;
   fallbackLabels?: Partial<ResumeFallbackLabels>;
 }
@@ -33,6 +39,7 @@ interface ResumeModernTwoColumnProps {
 export const ResumeModernTwoColumn: React.FC<ResumeModernTwoColumnProps> = ({
   data,
   showContactIcons = false,
+  justifyBullets = false,
   sectionHeadings,
   fallbackLabels,
 }) => {
@@ -56,6 +63,7 @@ export const ResumeModernTwoColumn: React.FC<ResumeModernTwoColumnProps> = ({
     additional?.awards?.filter(
       (item): item is string => typeof item === 'string' && item.trim() !== ''
     ) ?? [];
+  const additionalGroups = getVisibleAdditionalGroups(additional?.additionalGroups);
 
   // Get sorted visible sections
   const sortedSections = getSortedSections(data);
@@ -87,6 +95,12 @@ export const ResumeModernTwoColumn: React.FC<ResumeModernTwoColumnProps> = ({
   const isSectionVisible = (sectionKey: string): boolean => {
     const section = allSections.find((s) => s.key === sectionKey);
     return section?.isVisible ?? true;
+  };
+
+  // Font-size override for a built-in section, keyed the same way as isSectionVisible.
+  const getSectionStyle = (sectionKey: string): React.CSSProperties | undefined => {
+    const section = allSections.find((s) => s.key === sectionKey);
+    return section ? getSectionFontSizeStyle(section) : undefined;
   };
 
   // Get custom sections (non-default)
@@ -173,17 +187,17 @@ export const ResumeModernTwoColumn: React.FC<ResumeModernTwoColumnProps> = ({
         <div className={styles.mainColumn}>
           {/* Summary Section */}
           {isSectionVisible('summary') && summary && (
-            <div className={baseStyles['resume-section']}>
+            <div className={baseStyles['resume-section']} style={getSectionStyle('summary')}>
               <h3 className={styles.sectionTitleAccent}>
                 {getSectionDisplayName('summary', headingFallbacks.summary)}
               </h3>
-              <p className={`text-justify ${baseStyles['resume-text']}`}>{summary}</p>
+              <p className={`text-justify ${baseStyles['resume-text-sm']}`}>{summary}</p>
             </div>
           )}
 
           {/* Experience Section */}
           {isSectionVisible('workExperience') && workExperience && workExperience.length > 0 && (
-            <div className={baseStyles['resume-section']}>
+            <div className={baseStyles['resume-section']} style={getSectionStyle('workExperience')}>
               <h3 className={styles.sectionTitleAccent}>
                 {getSectionDisplayName('workExperience', headingFallbacks.experience)}
               </h3>
@@ -198,6 +212,13 @@ export const ResumeModernTwoColumn: React.FC<ResumeModernTwoColumnProps> = ({
                         {formatDateRange(exp.years)}
                       </span>
                     </div>
+                    {exp.secondaryYears && (
+                      <div className="flex justify-end">
+                        <span className={baseStyles['resume-date']}>
+                          {formatDateRange(exp.secondaryYears)}
+                        </span>
+                      </div>
+                    )}
 
                     <div
                       className={`flex justify-between items-center ${baseStyles['resume-row-tight']} ${baseStyles['resume-item-subtitle-sm']}`}
@@ -215,7 +236,7 @@ export const ResumeModernTwoColumn: React.FC<ResumeModernTwoColumnProps> = ({
                         {exp.description.map((desc, index) => (
                           <li key={index} className="flex">
                             <span className="mr-1.5 flex-shrink-0">•&nbsp;</span>
-                            <span>
+                            <span className={justifyBullets ? 'text-justify' : undefined}>
                               <SafeHtml html={desc} />
                             </span>
                           </li>
@@ -232,7 +253,10 @@ export const ResumeModernTwoColumn: React.FC<ResumeModernTwoColumnProps> = ({
           {isSectionVisible('personalProjects') &&
             personalProjects &&
             personalProjects.length > 0 && (
-              <div className={baseStyles['resume-section']}>
+              <div
+                className={baseStyles['resume-section']}
+                style={getSectionStyle('personalProjects')}
+              >
                 <h3 className={styles.sectionTitleAccent}>
                   {getSectionDisplayName('personalProjects', headingFallbacks.projects)}
                 </h3>
@@ -305,7 +329,7 @@ export const ResumeModernTwoColumn: React.FC<ResumeModernTwoColumnProps> = ({
                           {project.description.map((desc, index) => (
                             <li key={index} className="flex">
                               <span className="mr-1.5 flex-shrink-0">•&nbsp;</span>
-                              <span>
+                              <span className={justifyBullets ? 'text-justify' : undefined}>
                                 <SafeHtml html={desc} />
                               </span>
                             </li>
@@ -320,7 +344,7 @@ export const ResumeModernTwoColumn: React.FC<ResumeModernTwoColumnProps> = ({
 
           {/* Certifications/Training - Main column */}
           {isSectionVisible('additional') && certificationsTraining.length > 0 && (
-            <div className={baseStyles['resume-section']}>
+            <div className={baseStyles['resume-section']} style={getSectionStyle('additional')}>
               <h3 className={styles.sectionTitleAccent}>{headingFallbacks.certifications}</h3>
               <ul className={`ml-4 ${baseStyles['resume-list']} ${baseStyles['resume-text-xs']}`}>
                 {certificationsTraining.map((cert, index) => (
@@ -335,7 +359,12 @@ export const ResumeModernTwoColumn: React.FC<ResumeModernTwoColumnProps> = ({
 
           {/* Custom Sections - Main column */}
           {customSections.map((section) => (
-            <DynamicResumeSection key={section.id} sectionMeta={section} resumeData={data} />
+            <DynamicResumeSection
+              key={section.id}
+              sectionMeta={section}
+              resumeData={data}
+              justifyBullets={justifyBullets}
+            />
           ))}
         </div>
 
@@ -343,7 +372,7 @@ export const ResumeModernTwoColumn: React.FC<ResumeModernTwoColumnProps> = ({
         <div className={styles.sidebarColumn}>
           {/* Education Section */}
           {isSectionVisible('education') && education && education.length > 0 && (
-            <div className={baseStyles['resume-section']}>
+            <div className={baseStyles['resume-section']} style={getSectionStyle('education')}>
               <h3
                 className={`${baseStyles['resume-section-title-sm']} text-[var(--resume-accent-primary)]`}
               >
@@ -366,6 +395,13 @@ export const ResumeModernTwoColumn: React.FC<ResumeModernTwoColumnProps> = ({
                       )}
                     </h4>
                     <p className={baseStyles['resume-item-subtitle-sm']}>{edu.degree}</p>
+                    {edu.note && (
+                      <p
+                        className={`italic ${baseStyles['resume-text-xs']} ${baseStyles['resume-meta']} ${baseStyles['resume-row-tight']}`}
+                      >
+                        {edu.note}
+                      </p>
+                    )}
                     {edu.description && (
                       <p className={`${baseStyles['resume-text-xs']} ${baseStyles['resume-meta']}`}>
                         {edu.description}
@@ -379,7 +415,7 @@ export const ResumeModernTwoColumn: React.FC<ResumeModernTwoColumnProps> = ({
 
           {/* Skills Section */}
           {isSectionVisible('additional') && technicalSkills.length > 0 && (
-            <div className={baseStyles['resume-section']}>
+            <div className={baseStyles['resume-section']} style={getSectionStyle('additional')}>
               <h3
                 className={`${baseStyles['resume-section-title-sm']} text-[var(--resume-accent-primary)]`}
               >
@@ -395,9 +431,32 @@ export const ResumeModernTwoColumn: React.FC<ResumeModernTwoColumnProps> = ({
             </div>
           )}
 
+          {/* Additional Named Sections */}
+          {isSectionVisible('additional') &&
+            additionalGroups.map((group) => (
+              <div
+                className={baseStyles['resume-section']}
+                style={getSectionStyle('additional')}
+                key={group.id}
+              >
+                <h3
+                  className={`${baseStyles['resume-section-title-sm']} text-[var(--resume-accent-primary)]`}
+                >
+                  {group.label}
+                </h3>
+                <div className="flex flex-wrap gap-1">
+                  {group.items.map((skill, index) => (
+                    <span key={index} className={baseStyles['resume-skill-pill']}>
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+
           {/* Languages Section */}
           {isSectionVisible('additional') && languages.length > 0 && (
-            <div className={baseStyles['resume-section']}>
+            <div className={baseStyles['resume-section']} style={getSectionStyle('additional')}>
               <h3
                 className={`${baseStyles['resume-section-title-sm']} text-[var(--resume-accent-primary)]`}
               >
@@ -409,7 +468,7 @@ export const ResumeModernTwoColumn: React.FC<ResumeModernTwoColumnProps> = ({
 
           {/* Awards Section */}
           {isSectionVisible('additional') && awards.length > 0 && (
-            <div className={baseStyles['resume-section']}>
+            <div className={baseStyles['resume-section']} style={getSectionStyle('additional')}>
               <h3
                 className={`${baseStyles['resume-section-title-sm']} text-[var(--resume-accent-primary)]`}
               >

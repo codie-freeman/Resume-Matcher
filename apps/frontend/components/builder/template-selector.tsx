@@ -46,6 +46,10 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({ value, onCha
       name: t('builder.formatting.templates.vivid.name'),
       description: t('builder.formatting.templates.vivid.description'),
     },
+    custom: {
+      name: t('builder.formatting.templates.custom.name'),
+      description: t('builder.formatting.templates.custom.description'),
+    },
   };
 
   return (
@@ -254,6 +258,33 @@ export const TemplateThumbnail: React.FC<TemplateThumbnailProps> = ({ type, isAc
             <div className={`h-0.5 ${accentColor} w-full`}></div>
             <div className={`h-0.5 ${lineColor} w-3/5 opacity-50`}></div>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (type === 'custom') {
+    // Custom thumbnail - same shape as Clean, with a serif "Aa" mark to signal
+    // the Merriweather typeface instead of Clean's sans default.
+    return (
+      <div className={`w-14 h-18 border ${borderColor} bg-white p-1.5 flex flex-col gap-1`}>
+        {/* Centered serif name + contact line */}
+        <div className="flex flex-col items-center gap-0.5">
+          <span
+            className={`font-serif text-[7px] leading-none ${isActive ? 'text-blue-700' : 'text-steel-grey'}`}
+          >
+            Aa
+          </span>
+          <div className={`h-0.5 ${lineColor} w-2/3 opacity-40`}></div>
+        </div>
+        {/* Large gray section headers (taller, lower opacity) + thin rule */}
+        <div className="flex-1 space-y-1 mt-1">
+          <div className={`h-1 ${lineColor} w-1/2 opacity-30 border-b ${borderColor}`}></div>
+          <div className={`h-0.5 ${lineColor} w-5/6 opacity-50`}></div>
+          <div className={`h-0.5 ${lineColor} w-4/6 opacity-50`}></div>
+          <div className="h-0.5"></div>
+          <div className={`h-1 ${lineColor} w-2/5 opacity-30 border-b ${borderColor}`}></div>
+          <div className={`h-0.5 ${lineColor} w-5/6 opacity-50`}></div>
         </div>
       </div>
     );

@@ -17,7 +17,9 @@ import {
   ITEM_SPACING_MAP,
   LINE_HEIGHT_MAP,
   FONT_SIZE_MAP,
-  HEADER_SCALE_MAP,
+  NAME_FONT_SIZE_MAP,
+  SECTION_HEADER_FONT_SIZE_MAP,
+  CONTACT_FONT_SIZE_MAP,
   COMPACT_MULTIPLIER,
   COMPACT_LINE_HEIGHT_MULTIPLIER,
   TEMPLATE_OPTIONS,
@@ -112,6 +114,10 @@ export const FormattingControls: React.FC<FormattingControlsProps> = ({ settings
     onChange({ ...settings, showContactIcons: !settings.showContactIcons });
   };
 
+  const handleJustifyBulletsToggle = () => {
+    onChange({ ...settings, justifyBullets: !settings.justifyBullets });
+  };
+
   const handleAccentColorChange = (accentColor: AccentColor) => {
     onChange({ ...settings, accentColor });
   };
@@ -149,6 +155,10 @@ export const FormattingControls: React.FC<FormattingControlsProps> = ({ settings
       vivid: {
         name: t('builder.formatting.templates.vivid.name'),
         description: t('builder.formatting.templates.vivid.description'),
+      },
+      custom: {
+        name: t('builder.formatting.templates.custom.name'),
+        description: t('builder.formatting.templates.custom.description'),
       },
     }),
     [t]
@@ -344,6 +354,16 @@ export const FormattingControls: React.FC<FormattingControlsProps> = ({ settings
                 value={settings.fontSize.headerScale}
                 onChange={(v) => handleFontChange('headerScale', v)}
               />
+              <SpacingSelector
+                label={t('builder.formatting.nameFontSize')}
+                value={settings.fontSize.nameSize}
+                onChange={(v) => handleFontChange('nameSize', v)}
+              />
+              <SpacingSelector
+                label={t('builder.formatting.contactFontSize')}
+                value={settings.fontSize.contactSize}
+                onChange={(v) => handleFontChange('contactSize', v)}
+              />
               {/* Header Font Family */}
               <div className="flex items-center gap-2">
                 <span className="font-mono text-xs w-16 text-ink-soft">
@@ -454,6 +474,29 @@ export const FormattingControls: React.FC<FormattingControlsProps> = ({ settings
                   {t('builder.formatting.contactIcons')}
                 </span>
               </label>
+
+              {/* Justify Bullets Toggle */}
+              <label className="flex items-center gap-3 cursor-pointer">
+                <button
+                  onClick={handleJustifyBulletsToggle}
+                  className={`relative w-10 h-5 border-2 transition-all ${
+                    settings.justifyBullets
+                      ? 'bg-blue-700 border-blue-700'
+                      : 'bg-white border-steel-grey'
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 w-3.5 h-3.5 bg-white border transition-all ${
+                      settings.justifyBullets
+                        ? 'left-5 border-blue-700'
+                        : 'left-0.5 border-steel-grey'
+                    }`}
+                  />
+                </button>
+                <span className="font-mono text-xs text-ink-soft">
+                  {t('builder.formatting.justifyBullets')}
+                </span>
+              </label>
             </div>
           </div>
 
@@ -487,7 +530,15 @@ export const FormattingControls: React.FC<FormattingControlsProps> = ({ settings
                 </div>
                 <div>
                   {t('builder.formatting.effectiveHeaderScale')}:{' '}
-                  {HEADER_SCALE_MAP[settings.fontSize.headerScale]}x
+                  {SECTION_HEADER_FONT_SIZE_MAP[settings.fontSize.headerScale]}
+                </div>
+                <div>
+                  {t('builder.formatting.effectiveNameFontSize')}:{' '}
+                  {NAME_FONT_SIZE_MAP[settings.fontSize.nameSize]}
+                </div>
+                <div>
+                  {t('builder.formatting.effectiveContactFontSize')}:{' '}
+                  {CONTACT_FONT_SIZE_MAP[settings.fontSize.contactSize]}
                 </div>
                 <div>
                   {t('builder.formatting.effectiveHeaderFont')}:{' '}

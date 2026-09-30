@@ -1,12 +1,13 @@
 @import './_tokens.css';
 
 /*
-  Clean Template
-  ID: clean
+  Custom Template
+  ID: custom
 
-  Minimal modern sans layout. Single-typeface design: all text inherits --body-font
-  (sans by default), so the Body Font control drives the whole template. Large
-  understated gray UPPERCASE section headers, single-line entries.
+  Same layout as Clean (minimal single-typeface design), but its signature font
+  preset is serif/serif, and the "Serif" choice resolves to Merriweather instead
+  of the generic system serif stack (see TEMPLATE_FONT_PRESETS + resolveHeaderFont/
+  resolveBodyFont in lib/types/template-settings.ts).
 */
 
 .container {
@@ -15,16 +16,28 @@
 
 /*
   Body text is driven by the Body Font control; the name + section headers are driven
-  by the Header Font control. Both controls are live; selecting Clean seeds sans/sans
-  (see TEMPLATE_FONT_PRESETS) so the default look stays all-sans.
+  by the Header Font control. Both controls are live; selecting Custom seeds serif/serif
+  (see TEMPLATE_FONT_PRESETS), resolved to Merriweather, so the default look is all-serif.
+
+  Color is forced to black (--resume-text-primary) here too: _base.module.css's shared
+  classes (.resume-text-sm, .resume-item-subtitle, .resume-meta, etc., used for bullets/
+  summary/subtitles across every template) default to various grays, and this template
+  should read as pure black throughout rather than inheriting that shared gray scale.
+  The element-selector list gives this higher specificity than those single-class rules,
+  so it wins regardless of source order.
 */
 .container,
 .container :global(p),
 .container :global(li),
 .container :global(a),
 .container :global(span),
-.container :global(div) {
+.container :global(div),
+.container :global(h1),
+.container :global(h2),
+.container :global(h3),
+.container :global(h4) {
   font-family: var(--body-font);
+  color: var(--resume-text-primary);
 }
 
 .name {
@@ -37,27 +50,26 @@
 
 .tagline {
   font-size: calc(var(--name-font-size) * 0.525);
-  color: var(--resume-text-tertiary);
+  color: var(--resume-text-primary);
 }
 
 .contactRow {
   font-size: var(--contact-font-size);
-  color: var(--resume-text-body);
+  color: var(--resume-text-primary);
 }
 
 .sep {
-  color: var(--resume-text-tertiary);
+  color: var(--resume-text-primary);
   padding: 0 0.4em;
 }
 
-/* Large, understated, gray uppercase header with a thin rule. */
+/* Large, understated header with a thin rule. */
 .sectionTitle {
   font-family: var(--header-font);
   font-size: calc(var(--section-header-font-size) * 1.15);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--resume-text-tertiary);
+  letter-spacing: 0.02em;
+  color: var(--resume-text-primary);
   border-bottom: 1px solid var(--resume-border-secondary);
   padding-bottom: 0.15rem;
   margin-bottom: var(--item-gap);
@@ -73,16 +85,15 @@
 }
 
 .entryRole {
-  font-variant: small-caps;
   letter-spacing: 0.02em;
-  color: var(--resume-text-tertiary);
+  color: var(--resume-text-primary);
 }
 
 /* `pre` (not `nowrap`) preserves manually-typed leading/trailing spaces,
    e.g. to nudge a secondary date line into alignment with the primary one. */
 .entryMeta {
   font-size: calc(var(--font-size-base) * 0.85);
-  color: var(--resume-text-tertiary);
+  color: var(--resume-text-primary);
   white-space: pre;
   flex-shrink: 0;
   text-align: right;

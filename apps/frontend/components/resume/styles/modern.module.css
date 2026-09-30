@@ -25,7 +25,7 @@
 
 /* Section title with accent color and underline */
 .section-title-accent {
-  font-size: calc(var(--font-size-base) * var(--section-header-scale));
+  font-size: var(--section-header-font-size);
   font-family: var(--header-font);
   font-weight: 700;
   text-transform: uppercase;
@@ -43,7 +43,7 @@
 
 /* Smaller accent title for sidebar (if used) */
 .section-title-accent-sm {
-  font-size: calc(var(--font-size-base) * var(--section-header-scale) * 0.88);
+  font-size: calc(var(--section-header-font-size) * 0.88);
   font-family: var(--header-font);
   font-weight: 700;
   text-transform: uppercase;

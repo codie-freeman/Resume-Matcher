@@ -13,6 +13,7 @@
 | latex             | Single column, serif, ruled headers | Classic/academic résumés                 |
 | clean             | Single column, minimal sans         | Understated modern résumés               |
 | vivid             | 63% main + 37% sidebar, accent      | Colorful Awesome-CV style (accent color) |
+| custom            | Single column, minimal serif        | Clean layout, Merriweather typeface      |
 
 ## File Structure
 
@@ -26,6 +27,7 @@ components/resume/
 ├── resume-latex.tsx              # latex
 ├── resume-clean.tsx              # clean
 ├── resume-vivid.tsx              # vivid
+├── resume-custom.tsx             # custom
 ├── dynamic-resume-section.tsx    # shared custom-section renderer
 ├── safe-html.tsx                 # sanitized rich-text renderer
 └── styles/                       # *.module.css per template + _base/_tokens
@@ -45,7 +47,8 @@ interface TemplateSettings {
     | "modern-two-column"
     | "latex"
     | "clean"
-    | "vivid";
+    | "vivid"
+    | "custom";
   pageSize: "A4" | "LETTER";
   margins: { top: number; bottom: number; left: number; right: number }; // 5-25mm each
   spacing: {
@@ -55,7 +58,9 @@ interface TemplateSettings {
   };
   fontSize: {
     base: 1 | 2 | 3 | 4 | 5;
-    headerScale: 1 | 2 | 3 | 4 | 5;
+    headerScale: 1 | 2 | 3 | 4 | 5; // section headers (+ tagline/title line)
+    nameSize: 1 | 2 | 3 | 4 | 5; // name heading, independent of headerScale
+    contactSize: 1 | 2 | 3 | 4 | 5; // contact details (phone/email/location), independent of the rest
     headerFont: "serif" | "sans-serif" | "mono";
     bodyFont: "serif" | "sans-serif" | "mono";
   };

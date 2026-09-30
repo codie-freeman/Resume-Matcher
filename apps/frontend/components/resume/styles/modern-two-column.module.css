@@ -40,7 +40,7 @@
 /* Section titles with accent color underline */
 .sectionTitleAccent {
   font-family: var(--header-font);
-  font-size: calc(var(--font-size-base) * var(--section-header-scale));
+  font-size: var(--section-header-font-size);
   font-weight: 700;
   color: var(--resume-accent-primary);
   text-transform: uppercase;

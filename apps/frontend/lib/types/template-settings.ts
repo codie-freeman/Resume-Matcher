@@ -12,7 +12,8 @@ export type TemplateType =
   | 'modern-two-column'
   | 'latex'
   | 'clean'
-  | 'vivid';
+  | 'vivid'
+  | 'custom';
 
 export type PageSize = 'A4' | 'LETTER';
 
@@ -38,7 +39,9 @@ export interface SpacingSettings {
 
 export interface FontSizeSettings {
   base: SpacingLevel; // Overall text scale
-  headerScale: SpacingLevel; // Header size multiplier
+  headerScale: SpacingLevel; // Header size multiplier (section headers + tagline)
+  nameSize: SpacingLevel; // Name heading size, independent of Headers/Base
+  contactSize: SpacingLevel; // Contact details (phone/email/location) size, independent of Headers/Base
   headerFont: HeaderFontFamily; // Header font family
   bodyFont: BodyFontFamily; // Body text font family
 }
@@ -51,6 +54,7 @@ export interface TemplateSettings {
   fontSize: FontSizeSettings;
   compactMode: boolean; // Apply tighter spacing across the board
   showContactIcons: boolean; // Show icons next to contact info
+  justifyBullets: boolean; // Justify bullet-point text (ragged-right by default)
   accentColor: AccentColor; // Accent color for Modern template
 }
 
@@ -62,11 +66,35 @@ export const DEFAULT_TEMPLATE_SETTINGS: TemplateSettings = {
   pageSize: 'A4',
   margins: { top: 10, bottom: 10, left: 10, right: 10 },
   spacing: { section: 3, item: 2, lineHeight: 3 },
-  fontSize: { base: 3, headerScale: 3, headerFont: 'serif', bodyFont: 'sans-serif' },
+  fontSize: {
+    base: 3,
+    headerScale: 3,
+    nameSize: 3,
+    contactSize: 3,
+    headerFont: 'serif',
+    bodyFont: 'sans-serif',
+  },
   compactMode: false,
   showContactIcons: false,
+  justifyBullets: false,
   accentColor: 'blue',
 };
+
+/**
+ * Deep-merges a partial/saved TemplateSettings (from localStorage or a
+ * loaded resume) over the defaults, so settings saved before a newer
+ * formatting knob existed fall back cleanly instead of leaving nested
+ * objects undefined.
+ */
+export function mergeTemplateSettings(saved: Partial<TemplateSettings>): TemplateSettings {
+  return {
+    ...DEFAULT_TEMPLATE_SETTINGS,
+    ...saved,
+    margins: { ...DEFAULT_TEMPLATE_SETTINGS.margins, ...saved.margins },
+    spacing: { ...DEFAULT_TEMPLATE_SETTINGS.spacing, ...saved.spacing },
+    fontSize: { ...DEFAULT_TEMPLATE_SETTINGS.fontSize, ...saved.fontSize },
+  };
+}
 
 /**
  * Page size dimensions for display
@@ -111,21 +139,41 @@ export const FONT_SIZE_MAP: Record<SpacingLevel, string> = {
   5: '16px',
 };
 
-export const HEADER_SCALE_MAP: Record<SpacingLevel, number> = {
-  1: 1.5,
-  2: 1.75,
-  3: 2, // default
-  4: 2.25,
-  5: 2.5,
+// Name heading font size (the person's name at the top of the résumé, plus its
+// tagline/title line). Independent of FONT_SIZE_MAP (Base) and headerScale on
+// purpose — the Name control must never move when Base or Headers change, and
+// vice versa. Level 3 (28px) matches the old default of 14px base × 2
+// header-scale, so the default look is unchanged; every other level is now a
+// fixed size rather than a multiplier of Base.
+export const NAME_FONT_SIZE_MAP: Record<SpacingLevel, string> = {
+  1: '22px',
+  2: '25px',
+  3: '28px', // default
+  4: '32px',
+  5: '36px',
 };
 
-// Section header scale (SUMMARY, EXPERIENCE, etc.) - slightly smaller than name
-export const SECTION_HEADER_SCALE_MAP: Record<SpacingLevel, number> = {
-  1: 1.0,
-  2: 1.1,
-  3: 1.2, // default
-  4: 1.3,
-  5: 1.4,
+// Contact details font size (phone, email, location, links). Independent of
+// every other font-size control for the same reason as NAME_FONT_SIZE_MAP.
+// Level 3 (11px) approximates the old default (~40-47% of the 28px name size,
+// depending on template), so the default look is largely unchanged.
+export const CONTACT_FONT_SIZE_MAP: Record<SpacingLevel, string> = {
+  1: '9px',
+  2: '10px',
+  3: '11px', // default
+  4: '12px',
+  5: '13px',
+};
+
+// Section header font size (SUMMARY, EXPERIENCE, etc.) - slightly smaller
+// than the name. Same independence rationale as NAME_FONT_SIZE_MAP; level
+// 3 (17px) matches the old default of 14px base × 1.2 section-header-scale.
+export const SECTION_HEADER_FONT_SIZE_MAP: Record<SpacingLevel, string> = {
+  1: '14px',
+  2: '15px',
+  3: '17px', // default
+  4: '18px',
+  5: '20px',
 };
 
 // Header font family mapping
@@ -140,6 +188,31 @@ export const BODY_FONT_MAP: Record<BodyFontFamily, string> = {
   'sans-serif': 'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji"',
   mono: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
 };
+
+/**
+ * The signature serif face for templates with a Merriweather-based look — what
+ * "Serif" resolves to for LaTeX and Custom, instead of the generic system serif
+ * stack. The Header/Body Font controls stay live (picking Sans or Mono still
+ * switches away from it); only the "Serif" choice's underlying typeface differs
+ * for these templates. `--font-merriweather` is loaded via next/font/google in
+ * the root layout.
+ */
+const MERRIWEATHER_SERIF_FONT_STACK =
+  'var(--font-merriweather), Georgia, Cambria, "Times New Roman", Times, serif';
+
+const MERRIWEATHER_SERIF_TEMPLATES: ReadonlySet<TemplateType> = new Set(['latex', 'custom']);
+
+function resolveHeaderFont(font: HeaderFontFamily, template: TemplateType): string {
+  if (MERRIWEATHER_SERIF_TEMPLATES.has(template) && font === 'serif')
+    return MERRIWEATHER_SERIF_FONT_STACK;
+  return HEADER_FONT_MAP[font];
+}
+
+function resolveBodyFont(font: BodyFontFamily, template: TemplateType): string {
+  if (MERRIWEATHER_SERIF_TEMPLATES.has(template) && font === 'serif')
+    return MERRIWEATHER_SERIF_FONT_STACK;
+  return BODY_FONT_MAP[font];
+}
 
 /**
  * Accent color mapping for Modern template
@@ -188,10 +261,11 @@ export function settingsToCssVars(settings?: TemplateSettings): React.CSSPropert
       ? LINE_HEIGHT_MAP[s.spacing.lineHeight] * COMPACT_LINE_HEIGHT_MULTIPLIER
       : LINE_HEIGHT_MAP[s.spacing.lineHeight],
     '--font-size-base': FONT_SIZE_MAP[s.fontSize.base],
-    '--header-scale': HEADER_SCALE_MAP[s.fontSize.headerScale],
-    '--section-header-scale': SECTION_HEADER_SCALE_MAP[s.fontSize.headerScale],
-    '--header-font': HEADER_FONT_MAP[s.fontSize.headerFont],
-    '--body-font': BODY_FONT_MAP[s.fontSize.bodyFont],
+    '--name-font-size': NAME_FONT_SIZE_MAP[s.fontSize.nameSize],
+    '--contact-font-size': CONTACT_FONT_SIZE_MAP[s.fontSize.contactSize],
+    '--section-header-font-size': SECTION_HEADER_FONT_SIZE_MAP[s.fontSize.headerScale],
+    '--header-font': resolveHeaderFont(s.fontSize.headerFont, s.template),
+    '--body-font': resolveBodyFont(s.fontSize.bodyFont, s.template),
     '--margin-top': `${marginTop}mm`,
     '--margin-bottom': `${marginBottom}mm`,
     '--margin-left': `${marginLeft}mm`,
@@ -247,13 +321,18 @@ export const TEMPLATE_OPTIONS: TemplateInfo[] = [
     name: 'Vivid',
     description: 'Colorful two-column layout with accent headers and arrow bullets',
   },
+  {
+    id: 'custom',
+    name: 'Custom',
+    description: 'Clean layout set in the Merriweather serif typeface',
+  },
 ];
 
 /**
  * Signature font presets for single-typeface templates.
  *
- * LaTeX and Clean bind their headers to `--header-font` and body to `--body-font`, so
- * both font controls are live. Selecting one of these templates applies its signature
+ * LaTeX, Clean, and Custom bind their headers to `--header-font` and body to `--body-font`,
+ * so both font controls are live. Selecting one of these templates applies its signature
  * fonts (so it matches its reference look by default); the user can then override either
  * control. Templates not listed here keep the current font settings on selection.
  */
@@ -262,6 +341,7 @@ export const TEMPLATE_FONT_PRESETS: Partial<
 > = {
   latex: { headerFont: 'serif', bodyFont: 'serif' },
   clean: { headerFont: 'sans-serif', bodyFont: 'sans-serif' },
+  custom: { headerFont: 'serif', bodyFont: 'serif' },
 };
 
 /**

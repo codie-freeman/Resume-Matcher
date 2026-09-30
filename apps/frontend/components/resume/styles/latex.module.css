@@ -29,26 +29,25 @@
 
 .name {
   font-family: var(--header-font);
-  font-size: calc(var(--font-size-base) * var(--header-scale));
+  font-size: var(--name-font-size);
   font-weight: 700;
-  font-variant: small-caps;
   letter-spacing: 0.02em;
   color: var(--resume-text-primary);
 }
 
 .locationLine {
-  font-size: var(--font-size-base);
+  font-size: calc(var(--name-font-size) * 0.5);
   color: var(--resume-text-body);
 }
 
 .tagline {
   font-style: italic;
-  font-size: calc(var(--font-size-base) * 1.05);
+  font-size: calc(var(--name-font-size) * 0.525);
   color: var(--resume-text-body);
 }
 
 .contactRow {
-  font-size: calc(var(--font-size-base) * 0.95);
+  font-size: var(--contact-font-size);
   color: var(--resume-text-body);
 }
 
@@ -59,7 +58,7 @@
 /* Title-Case section header with a full-width rule (overrides base uppercase). */
 .sectionTitle {
   font-family: var(--header-font);
-  font-size: calc(var(--font-size-base) * var(--section-header-scale));
+  font-size: var(--section-header-font-size);
   font-weight: 700;
   text-transform: none;
   letter-spacing: 0;
@@ -78,10 +77,12 @@
   color: var(--resume-text-primary);
 }
 
+/* `pre` (not `nowrap`) preserves manually-typed leading/trailing spaces,
+   e.g. to nudge a secondary date line into alignment with the primary one. */
 .entryDates {
   font-weight: 700;
   color: var(--resume-text-primary);
-  white-space: nowrap;
+  white-space: pre;
   flex-shrink: 0;
   text-align: right;
 }

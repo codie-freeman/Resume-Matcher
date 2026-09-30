@@ -6,8 +6,9 @@
   --item-gap: 0.25rem;
   --line-height: 1.35;
   --font-size-base: 14px;
-  --header-scale: 2;
-  --section-header-scale: 1.2;
+  --name-font-size: 28px;
+  --contact-font-size: 11px;
+  --section-header-font-size: 17px;
   --header-font: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
   --body-font: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
 
@@ -32,21 +33,29 @@
 }
 
 .resume-name {
-  font-size: calc(var(--font-size-base) * var(--header-scale));
+  font-size: var(--name-font-size);
   font-family: var(--header-font);
   font-weight: 700;
   color: var(--resume-text-primary);
 }
 
 .resume-title {
-  font-size: calc(var(--font-size-base) * 1.15);
+  font-size: calc(var(--name-font-size) * 0.575);
   color: var(--resume-text-body);
 }
 
+/* .resume-meta is reused for entry-level dates/info in some templates
+   (e.g. experience item location), where it must stay Base-driven — only
+   scope it to the independent Contact size within the personal-info header
+   block itself. */
 .resume-meta {
   font-family: var(--resume-font-mono);
   font-size: calc(var(--font-size-base) * 0.82);
   color: var(--resume-text-tertiary);
+}
+
+.resume-header .resume-meta {
+  font-size: var(--contact-font-size);
 }
 
 .resume-meta-sm {
@@ -55,18 +64,17 @@
   color: var(--resume-text-tertiary);
 }
 
-/* Date formatting - ensures dates never wrap and stay right-aligned */
+/* Date formatting - ensures dates never wrap and stay right-aligned.
+   `pre` (not `nowrap`) so manually-typed leading/trailing spaces (e.g. to
+   nudge a secondary date line into visual alignment with the primary one
+   above it) are preserved instead of being collapsed away. */
 .resume-date {
   font-family: var(--resume-font-mono);
   font-size: calc(var(--font-size-base) * 0.75);
   color: var(--resume-text-tertiary);
-  white-space: nowrap;
+  white-space: pre;
   flex-shrink: 0;
   text-align: right;
-}
-
-.resume-text {
-  font-family: var(--body-font);
 }
 
 .resume-text-sm {
@@ -166,6 +174,11 @@
 /* Resume Section Styles */
 .resume-section {
   margin-bottom: var(--section-gap);
+  /* Anchors font-size to the (possibly section-overridden) --font-size-base.
+     Without this, children that don't set their own font-size (e.g.
+     .resume-link) would inherit the computed value from .resume-body
+     instead, and a per-section font-size override would have no effect. */
+  font-size: var(--font-size-base);
 }
 
 .resume-section:last-child {
@@ -174,7 +187,7 @@
 
 /* Section Title - Full underline style */
 .resume-section-title {
-  font-size: calc(var(--font-size-base) * var(--section-header-scale));
+  font-size: var(--section-header-font-size);
   font-family: var(--header-font);
   font-weight: 700;
   text-transform: uppercase;
@@ -192,7 +205,7 @@
 
 /* Section Title - Small (for sidebar) - increased from 0.8x to 0.88x for better visual weight */
 .resume-section-title-sm {
-  font-size: calc(var(--font-size-base) * var(--section-header-scale) * 0.88);
+  font-size: calc(var(--section-header-font-size) * 0.88);
   font-family: var(--header-font);
   font-weight: 700;
   text-transform: uppercase;

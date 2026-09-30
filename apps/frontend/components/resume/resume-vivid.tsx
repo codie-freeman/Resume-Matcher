@@ -6,7 +6,12 @@ import type {
   ResumeSectionHeadings,
   ResumeFallbackLabels,
 } from '@/components/dashboard/resume-component';
-import { getSortedSections, getSectionMeta } from '@/lib/utils/section-helpers';
+import {
+  getSortedSections,
+  getSectionMeta,
+  getSectionFontSizeStyle,
+} from '@/lib/utils/section-helpers';
+import { getVisibleAdditionalGroups } from '@/lib/utils/additional-groups';
 import { formatDateRange } from '@/lib/utils';
 import { SafeHtml } from './safe-html';
 import baseStyles from './styles/_base.module.css';
@@ -15,6 +20,7 @@ import styles from './styles/vivid.module.css';
 interface ResumeVividProps {
   data: ResumeData;
   showContactIcons?: boolean;
+  justifyBullets?: boolean;
   sectionHeadings?: Partial<ResumeSectionHeadings>;
   fallbackLabels?: Partial<ResumeFallbackLabels>;
 }
@@ -33,6 +39,7 @@ interface ResumeVividProps {
 export const ResumeVivid: React.FC<ResumeVividProps> = ({
   data,
   showContactIcons = false,
+  justifyBullets = false,
   sectionHeadings,
   fallbackLabels,
 }) => {
@@ -45,6 +52,7 @@ export const ResumeVivid: React.FC<ResumeVividProps> = ({
   const languages = clean(additional?.languages);
   const certificationsTraining = clean(additional?.certificationsTraining);
   const awards = clean(additional?.awards);
+  const additionalGroups = getVisibleAdditionalGroups(additional?.additionalGroups);
 
   const sortedSections = getSortedSections(data);
   const allSections = getSectionMeta(data);
@@ -71,6 +79,12 @@ export const ResumeVivid: React.FC<ResumeVividProps> = ({
   const isSectionVisible = (sectionKey: string): boolean => {
     const section = allSections.find((s) => s.key === sectionKey);
     return section?.isVisible ?? true;
+  };
+
+  // Font-size override for a built-in section, keyed the same way as isSectionVisible.
+  const getSectionStyle = (sectionKey: string): React.CSSProperties | undefined => {
+    const section = allSections.find((s) => s.key === sectionKey);
+    return section ? getSectionFontSizeStyle(section) : undefined;
   };
 
   const customSections = sortedSections.filter((s) => !s.isDefault);
@@ -142,7 +156,7 @@ export const ResumeVivid: React.FC<ResumeVividProps> = ({
         {items.map((desc, index) => (
           <li key={index} className="flex">
             <span className={`mr-1.5 ${styles.arrow}`}>➜&nbsp;</span>
-            <span>
+            <span className={justifyBullets ? 'text-justify' : undefined}>
               <SafeHtml html={desc} />
             </span>
           </li>
@@ -177,16 +191,16 @@ export const ResumeVivid: React.FC<ResumeVividProps> = ({
         {/* Main Column - Left */}
         <div className={styles.mainColumn}>
           {isSectionVisible('summary') && summary && (
-            <div className={baseStyles['resume-section']}>
+            <div className={baseStyles['resume-section']} style={getSectionStyle('summary')}>
               <h3 className={styles.sectionTitle}>
                 {getSectionDisplayName('summary', headingFallbacks.summary)}
               </h3>
-              <p className={`text-justify ${baseStyles['resume-text']}`}>{summary}</p>
+              <p className={`text-justify ${baseStyles['resume-text-sm']}`}>{summary}</p>
             </div>
           )}
 
           {isSectionVisible('workExperience') && workExperience && workExperience.length > 0 && (
-            <div className={baseStyles['resume-section']}>
+            <div className={baseStyles['resume-section']} style={getSectionStyle('workExperience')}>
               <h3 className={styles.sectionTitle}>
                 {getSectionDisplayName('workExperience', headingFallbacks.experience)}
               </h3>
@@ -209,6 +223,9 @@ export const ResumeVivid: React.FC<ResumeVividProps> = ({
                     <div className={`${baseStyles['resume-row-tight']} ${styles.entryMeta}`}>
                       {[formatDateRange(exp.years), exp.location].filter(Boolean).join(' | ')}
                     </div>
+                    {exp.secondaryYears && (
+                      <div className={styles.entryMeta}>{formatDateRange(exp.secondaryYears)}</div>
+                    )}
                     {renderArrowBullets(exp.description)}
                   </div>
                 ))}
@@ -219,7 +236,10 @@ export const ResumeVivid: React.FC<ResumeVividProps> = ({
           {isSectionVisible('personalProjects') &&
             personalProjects &&
             personalProjects.length > 0 && (
-              <div className={baseStyles['resume-section']}>
+              <div
+                className={baseStyles['resume-section']}
+                style={getSectionStyle('personalProjects')}
+              >
                 <h3 className={styles.sectionTitle}>
                   {getSectionDisplayName('personalProjects', headingFallbacks.projects)}
                 </h3>
@@ -292,7 +312,7 @@ export const ResumeVivid: React.FC<ResumeVividProps> = ({
             )}
 
           {isSectionVisible('additional') && certificationsTraining.length > 0 && (
-            <div className={baseStyles['resume-section']}>
+            <div className={baseStyles['resume-section']} style={getSectionStyle('additional')}>
               <h3 className={styles.sectionTitle}>{headingFallbacks.certifications}</h3>
               {renderArrowBullets(certificationsTraining)}
             </div>
@@ -311,21 +331,33 @@ export const ResumeVivid: React.FC<ResumeVividProps> = ({
         {/* Sidebar Column - Right */}
         <div className={styles.sidebarColumn}>
           {isSectionVisible('additional') && technicalSkills.length > 0 && (
-            <div className={baseStyles['resume-section']}>
+            <div className={baseStyles['resume-section']} style={getSectionStyle('additional')}>
               <h3 className={styles.sectionTitleSm}>{headingFallbacks.skills}</h3>
               <p className={baseStyles['resume-text-xs']}>{technicalSkills.join(' • ')}</p>
             </div>
           )}
 
+          {isSectionVisible('additional') &&
+            additionalGroups.map((group) => (
+              <div
+                className={baseStyles['resume-section']}
+                style={getSectionStyle('additional')}
+                key={group.id}
+              >
+                <h3 className={styles.sectionTitleSm}>{group.label}</h3>
+                <p className={baseStyles['resume-text-xs']}>{group.items.join(' • ')}</p>
+              </div>
+            ))}
+
           {isSectionVisible('additional') && languages.length > 0 && (
-            <div className={baseStyles['resume-section']}>
+            <div className={baseStyles['resume-section']} style={getSectionStyle('additional')}>
               <h3 className={styles.sectionTitleSm}>{headingFallbacks.languages}</h3>
               <p className={baseStyles['resume-text-xs']}>{languages.join(' • ')}</p>
             </div>
           )}
 
           {isSectionVisible('education') && education && education.length > 0 && (
-            <div className={baseStyles['resume-section']}>
+            <div className={baseStyles['resume-section']} style={getSectionStyle('education')}>
               <h3 className={styles.sectionTitleSm}>
                 {getSectionDisplayName('education', headingFallbacks.education)}
               </h3>
@@ -343,6 +375,13 @@ export const ResumeVivid: React.FC<ResumeVividProps> = ({
                         {formatDateRange(edu.years)}
                       </p>
                     )}
+                    {edu.note && (
+                      <p
+                        className={`italic ${baseStyles['resume-text-xs']} ${baseStyles['resume-meta']} ${baseStyles['resume-row-tight']}`}
+                      >
+                        {edu.note}
+                      </p>
+                    )}
                     {edu.description && (
                       <p className={`${baseStyles['resume-text-xs']} ${baseStyles['resume-meta']}`}>
                         {edu.description}
@@ -355,7 +394,7 @@ export const ResumeVivid: React.FC<ResumeVividProps> = ({
           )}
 
           {isSectionVisible('additional') && awards.length > 0 && (
-            <div className={baseStyles['resume-section']}>
+            <div className={baseStyles['resume-section']} style={getSectionStyle('additional')}>
               <h3 className={styles.sectionTitleSm}>{headingFallbacks.awards}</h3>
               <ul className={baseStyles['resume-list']}>
                 {awards.map((award, index) => (
@@ -405,6 +444,8 @@ const DynamicResumeSectionVivid: React.FC<{
   const customSection = resumeData.customSections?.[sectionMeta.key];
   if (!customSection) return null;
 
+  const visibleGroups = getVisibleAdditionalGroups(customSection.additionalGroups);
+
   const hasContent = (() => {
     switch (sectionMeta.sectionType) {
       case 'text':
@@ -412,7 +453,7 @@ const DynamicResumeSectionVivid: React.FC<{
       case 'itemList':
         return Boolean(customSection.items?.length);
       case 'stringList':
-        return Boolean(customSection.strings?.length);
+        return Boolean(customSection.strings?.length) || visibleGroups.length > 0;
       default:
         return false;
     }
@@ -421,10 +462,10 @@ const DynamicResumeSectionVivid: React.FC<{
   if (!hasContent) return null;
 
   return (
-    <div className={baseStyles['resume-section']}>
+    <div className={baseStyles['resume-section']} style={getSectionFontSizeStyle(sectionMeta)}>
       <h3 className={styles.sectionTitle}>{sectionMeta.displayName}</h3>
       {sectionMeta.sectionType === 'text' && customSection.text?.trim() && (
-        <p className={`text-justify ${baseStyles['resume-text']}`}>{customSection.text}</p>
+        <p className={`text-justify ${baseStyles['resume-text-sm']}`}>{customSection.text}</p>
       )}
       {sectionMeta.sectionType === 'itemList' && customSection.items?.length ? (
         <div className={baseStyles['resume-items']}>
@@ -456,6 +497,18 @@ const DynamicResumeSectionVivid: React.FC<{
       {sectionMeta.sectionType === 'stringList' && customSection.strings?.length ? (
         <p className={baseStyles['resume-text-xs']}>{customSection.strings.join(' • ')}</p>
       ) : null}
+      {sectionMeta.sectionType === 'stringList' && visibleGroups.length > 0 && (
+        <div
+          className={`grid grid-cols-[max-content_1fr] gap-x-2 gap-y-1 ${baseStyles['resume-text-xs']}`}
+        >
+          {visibleGroups.map((group) => (
+            <React.Fragment key={group.id}>
+              <span className="font-bold whitespace-nowrap">{group.label}:</span>
+              <span>{group.items.join(', ')}</span>
+            </React.Fragment>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

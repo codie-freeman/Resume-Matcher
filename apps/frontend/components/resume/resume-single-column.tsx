@@ -5,7 +5,8 @@ import type {
   SectionMeta,
   AdditionalSectionLabels,
 } from '@/components/dashboard/resume-component';
-import { getSortedSections } from '@/lib/utils/section-helpers';
+import { getSortedSections, getSectionFontSizeStyle } from '@/lib/utils/section-helpers';
+import { getVisibleAdditionalGroups } from '@/lib/utils/additional-groups';
 import { formatDateRange } from '@/lib/utils';
 import { DynamicResumeSection } from './dynamic-resume-section';
 import { SafeHtml } from './safe-html';
@@ -15,6 +16,7 @@ import styles from './styles/swiss-single.module.css';
 interface ResumeSingleColumnProps {
   data: ResumeData;
   showContactIcons?: boolean;
+  justifyBullets?: boolean;
   additionalSectionLabels?: Partial<AdditionalSectionLabels>;
 }
 
@@ -29,6 +31,7 @@ interface ResumeSingleColumnProps {
 export const ResumeSingleColumn: React.FC<ResumeSingleColumnProps> = ({
   data,
   showContactIcons = false,
+  justifyBullets = false,
   additionalSectionLabels,
 }) => {
   const { personalInfo, summary, workExperience, education, personalProjects, additional } = data;
@@ -99,16 +102,24 @@ export const ResumeSingleColumn: React.FC<ResumeSingleColumnProps> = ({
       case 'summary':
         if (!summary) return null;
         return (
-          <div key={section.id} className={baseStyles['resume-section']}>
+          <div
+            key={section.id}
+            className={baseStyles['resume-section']}
+            style={getSectionFontSizeStyle(section)}
+          >
             <h3 className={baseStyles['resume-section-title']}>{section.displayName}</h3>
-            <p className={`text-justify ${baseStyles['resume-text']}`}>{summary}</p>
+            <p className={`text-justify ${baseStyles['resume-text-sm']}`}>{summary}</p>
           </div>
         );
 
       case 'workExperience':
         if (!workExperience || workExperience.length === 0) return null;
         return (
-          <div key={section.id} className={baseStyles['resume-section']}>
+          <div
+            key={section.id}
+            className={baseStyles['resume-section']}
+            style={getSectionFontSizeStyle(section)}
+          >
             <h3 className={baseStyles['resume-section-title']}>{section.displayName}</h3>
             <div className={baseStyles['resume-items']}>
               {workExperience.map((exp) => (
@@ -121,6 +132,13 @@ export const ResumeSingleColumn: React.FC<ResumeSingleColumnProps> = ({
                       {formatDateRange(exp.years)}
                     </span>
                   </div>
+                  {exp.secondaryYears && (
+                    <div className="flex justify-end">
+                      <span className={baseStyles['resume-date']}>
+                        {formatDateRange(exp.secondaryYears)}
+                      </span>
+                    </div>
+                  )}
                   <div
                     className={`flex justify-between items-center ${baseStyles['resume-row']} ${baseStyles['resume-item-subtitle']}`}
                   >
@@ -134,7 +152,7 @@ export const ResumeSingleColumn: React.FC<ResumeSingleColumnProps> = ({
                       {exp.description.map((desc, index) => (
                         <li key={index} className="flex">
                           <span className="mr-1.5 flex-shrink-0">•&nbsp;</span>
-                          <span>
+                          <span className={justifyBullets ? 'text-justify' : undefined}>
                             <SafeHtml html={desc} />
                           </span>
                         </li>
@@ -150,7 +168,11 @@ export const ResumeSingleColumn: React.FC<ResumeSingleColumnProps> = ({
       case 'personalProjects':
         if (!personalProjects || personalProjects.length === 0) return null;
         return (
-          <div key={section.id} className={baseStyles['resume-section']}>
+          <div
+            key={section.id}
+            className={baseStyles['resume-section']}
+            style={getSectionFontSizeStyle(section)}
+          >
             <h3 className={baseStyles['resume-section-title']}>{section.displayName}</h3>
             <div className={baseStyles['resume-items']}>
               {personalProjects.map((project) => (
@@ -221,7 +243,7 @@ export const ResumeSingleColumn: React.FC<ResumeSingleColumnProps> = ({
                       {project.description.map((desc, index) => (
                         <li key={index} className="flex">
                           <span className="mr-1.5 flex-shrink-0">•&nbsp;</span>
-                          <span>
+                          <span className={justifyBullets ? 'text-justify' : undefined}>
                             <SafeHtml html={desc} />
                           </span>
                         </li>
@@ -237,7 +259,11 @@ export const ResumeSingleColumn: React.FC<ResumeSingleColumnProps> = ({
       case 'education':
         if (!education || education.length === 0) return null;
         return (
-          <div key={section.id} className={baseStyles['resume-section']}>
+          <div
+            key={section.id}
+            className={baseStyles['resume-section']}
+            style={getSectionFontSizeStyle(section)}
+          >
             <h3 className={baseStyles['resume-section-title']}>{section.displayName}</h3>
             <div className={baseStyles['resume-items']}>
               {education.map((edu) => (
@@ -251,10 +277,17 @@ export const ResumeSingleColumn: React.FC<ResumeSingleColumnProps> = ({
                     </span>
                   </div>
                   <div
-                    className={`flex justify-between ${baseStyles['resume-item-subtitle']} ${baseStyles['resume-row-tight']}`}
+                    className={`flex justify-between ${baseStyles['resume-item-subtitle']} ${edu.note ? '' : baseStyles['resume-row-tight']}`}
                   >
                     <span>{edu.degree}</span>
                   </div>
+                  {edu.note && (
+                    <p
+                      className={`italic ${baseStyles['resume-text-sm']} ${baseStyles['resume-row-tight']}`}
+                    >
+                      {edu.note}
+                    </p>
+                  )}
                   {edu.description && (
                     <p className={baseStyles['resume-text-sm']}>{edu.description}</p>
                   )}
@@ -272,13 +305,21 @@ export const ResumeSingleColumn: React.FC<ResumeSingleColumnProps> = ({
             additional={additional}
             displayName={section.displayName}
             labels={additionalSectionLabels}
+            style={getSectionFontSizeStyle(section)}
           />
         );
 
       default:
         // Custom section - render using DynamicResumeSection
         if (!section.isDefault) {
-          return <DynamicResumeSection key={section.id} sectionMeta={section} resumeData={data} />;
+          return (
+            <DynamicResumeSection
+              key={section.id}
+              sectionMeta={section}
+              resumeData={data}
+              justifyBullets={justifyBullets}
+            />
+          );
         }
         return null;
     }
@@ -362,7 +403,8 @@ const AdditionalSection: React.FC<{
   additional: ResumeData['additional'];
   displayName?: string;
   labels?: Partial<AdditionalSectionLabels>;
-}> = ({ additional, displayName = 'Skills & Awards', labels }) => {
+  style?: React.CSSProperties;
+}> = ({ additional, displayName = 'Skills & Awards', labels, style }) => {
   if (!additional) return null;
 
   const {
@@ -386,6 +428,7 @@ const AdditionalSection: React.FC<{
   const awards = rawAwards.filter(
     (item): item is string => typeof item === 'string' && item.trim() !== ''
   );
+  const additionalGroups = getVisibleAdditionalGroups(additional.additionalGroups);
 
   const mergedLabels: AdditionalSectionLabels = {
     technicalSkills: labels?.technicalSkills ?? 'Technical Skills:',
@@ -396,6 +439,7 @@ const AdditionalSection: React.FC<{
 
   const hasContent =
     technicalSkills.length > 0 ||
+    additionalGroups.length > 0 ||
     languages.length > 0 ||
     certificationsTraining.length > 0 ||
     awards.length > 0;
@@ -403,30 +447,40 @@ const AdditionalSection: React.FC<{
   if (!hasContent) return null;
 
   return (
-    <div className={baseStyles['resume-section']}>
+    <div className={baseStyles['resume-section']} style={style}>
       <h3 className={baseStyles['resume-section-title']}>{displayName}</h3>
       <div className={`${baseStyles['resume-stack']} ${baseStyles['resume-text-sm']}`}>
         {technicalSkills.length > 0 && (
-          <div className="flex">
-            <span className="font-bold w-32 shrink-0">{mergedLabels.technicalSkills}</span>
+          <div className="flex gap-2">
+            <span className="font-bold shrink-0 whitespace-nowrap">
+              {mergedLabels.technicalSkills}
+            </span>
             <span>{technicalSkills.join(', ')}</span>
           </div>
         )}
+        {additionalGroups.map((group) => (
+          <div className="flex gap-2" key={group.id}>
+            <span className="font-bold shrink-0 whitespace-nowrap">{group.label}:</span>
+            <span>{group.items.join(', ')}</span>
+          </div>
+        ))}
         {languages.length > 0 && (
-          <div className="flex">
-            <span className="font-bold w-32 shrink-0">{mergedLabels.languages}</span>
+          <div className="flex gap-2">
+            <span className="font-bold shrink-0 whitespace-nowrap">{mergedLabels.languages}</span>
             <span>{languages.join(', ')}</span>
           </div>
         )}
         {certificationsTraining.length > 0 && (
-          <div className="flex">
-            <span className="font-bold w-32 shrink-0">{mergedLabels.certifications}</span>
+          <div className="flex gap-2">
+            <span className="font-bold shrink-0 whitespace-nowrap">
+              {mergedLabels.certifications}
+            </span>
             <span>{certificationsTraining.join(', ')}</span>
           </div>
         )}
         {awards.length > 0 && (
-          <div className="flex">
-            <span className="font-bold w-32 shrink-0">{mergedLabels.awards}</span>
+          <div className="flex gap-2">
+            <span className="font-bold shrink-0 whitespace-nowrap">{mergedLabels.awards}</span>
             <span>{awards.join(', ')}</span>
           </div>
         )}

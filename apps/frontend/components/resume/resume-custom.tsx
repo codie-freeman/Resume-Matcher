@@ -10,9 +10,9 @@ import { getVisibleAdditionalGroups } from '@/lib/utils/additional-groups';
 import { formatDateRange } from '@/lib/utils';
 import { SafeHtml } from './safe-html';
 import baseStyles from './styles/_base.module.css';
-import styles from './styles/clean.module.css';
+import styles from './styles/custom.module.css';
 
-interface ResumeCleanProps {
+interface ResumeCustomProps {
   data: ResumeData;
   showContactIcons?: boolean;
   justifyBullets?: boolean;
@@ -20,18 +20,20 @@ interface ResumeCleanProps {
 }
 
 /**
- * Clean Resume Template
+ * Custom Resume Template
  *
- * Minimal modern sans layout: centered light-weight name, a single pipe-separated
+ * Same layout as Clean: centered light-weight name, a single pipe-separated
  * contact line, large understated gray UPPERCASE section headers with a thin rule,
  * and single-line entries (COMPANY | Role on the left, Location | Dates on the right).
  *
- * Single-typeface design: all text inherits `--body-font` (sans by default), so the
- * Body Font control drives the whole template. ATS-safe (all text is real DOM nodes).
+ * Single-typeface design: all text inherits `--body-font`. Selecting this template
+ * seeds the Header/Body Font controls to serif, which resolves to the Merriweather
+ * typeface (see TEMPLATE_FONT_PRESETS in lib/types/template-settings.ts) rather than
+ * the generic system serif stack. ATS-safe (all text is real DOM nodes).
  *
  * Section order: Determined by sectionMeta ordering.
  */
-export const ResumeClean: React.FC<ResumeCleanProps> = ({
+export const ResumeCustom: React.FC<ResumeCustomProps> = ({
   data,
   showContactIcons = false,
   justifyBullets = false,
@@ -318,7 +320,7 @@ export const ResumeClean: React.FC<ResumeCleanProps> = ({
       default:
         if (!section.isDefault) {
           return (
-            <DynamicResumeSectionClean
+            <DynamicResumeSectionCustom
               key={section.id}
               sectionMeta={section}
               resumeData={data}
@@ -422,9 +424,9 @@ const AdditionalSection: React.FC<{
 };
 
 /**
- * Dynamic (custom) section wrapper for the Clean template.
+ * Dynamic (custom) section wrapper for the Custom template.
  */
-const DynamicResumeSectionClean: React.FC<{
+const DynamicResumeSectionCustom: React.FC<{
   sectionMeta: SectionMeta;
   resumeData: ResumeData;
   renderBullets: (items?: string[]) => React.ReactNode;
@@ -490,4 +492,4 @@ const DynamicResumeSectionClean: React.FC<{
   );
 };
 
-export default ResumeClean;
+export default ResumeCustom;

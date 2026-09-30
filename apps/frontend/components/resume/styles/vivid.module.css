@@ -50,7 +50,7 @@
 /* Monospace title + contact row */
 .titleLine {
   font-family: var(--resume-font-mono);
-  font-size: calc(var(--font-size-base) * 1.05);
+  font-size: calc(var(--name-font-size) * 0.525);
   color: var(--resume-text-tertiary);
   margin-top: 0.15rem;
   letter-spacing: 0.01em;
@@ -58,7 +58,7 @@
 
 .contactRow {
   font-family: var(--resume-font-mono);
-  font-size: calc(var(--font-size-base) * 0.8);
+  font-size: var(--contact-font-size);
   color: var(--resume-text-body);
 }
 
@@ -83,7 +83,7 @@
 /* Accent small-caps section headers */
 .sectionTitle {
   font-family: var(--header-font);
-  font-size: calc(var(--font-size-base) * var(--section-header-scale) * 1.1);
+  font-size: calc(var(--section-header-font-size) * 1.1);
   font-weight: 700;
   font-variant: small-caps;
   letter-spacing: 0.03em;
@@ -97,7 +97,7 @@
 
 .sectionTitleSm {
   font-family: var(--header-font);
-  font-size: calc(var(--font-size-base) * var(--section-header-scale) * 0.95);
+  font-size: calc(var(--section-header-font-size) * 0.95);
   font-weight: 700;
   font-variant: small-caps;
   letter-spacing: 0.03em;

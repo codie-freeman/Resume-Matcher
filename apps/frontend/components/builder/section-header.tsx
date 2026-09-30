@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { ChevronUp, ChevronDown, Trash2, Eye, EyeOff, Pencil, Check, X } from 'lucide-react';
 import type { SectionMeta } from '@/components/dashboard/resume-component';
+import type { SpacingLevel } from '@/lib/types/template-settings';
 import { useTranslations } from '@/lib/i18n';
 
 interface SectionHeaderProps {
@@ -15,6 +16,7 @@ interface SectionHeaderProps {
   onMoveUp: () => void;
   onMoveDown: () => void;
   onToggleVisibility: () => void;
+  onFontSizeChange: (fontSize: SpacingLevel | undefined) => void;
   isFirst: boolean;
   isLast: boolean;
   canDelete: boolean;
@@ -29,6 +31,7 @@ interface SectionHeaderProps {
  * - Move up/down buttons for reordering
  * - Delete button with confirmation
  * - Visibility toggle
+ * - Optional per-section font-size override (defaults to the global Base size)
  */
 export const SectionHeader: React.FC<SectionHeaderProps> = ({
   section,
@@ -37,6 +40,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
   onMoveUp,
   onMoveDown,
   onToggleVisibility,
+  onFontSizeChange,
   isFirst,
   isLast,
   canDelete,
@@ -244,6 +248,43 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
           )}
         </div>
       </div>
+
+      {/* Font Size Override */}
+      {!isPersonalInfo && (
+        <div className="flex items-center gap-2 mb-4">
+          <span className="font-mono text-xs uppercase tracking-wider text-steel-grey">
+            {t('builder.sectionHeader.fontSize')}:
+          </span>
+          <div className="flex gap-1">
+            <button
+              type="button"
+              onClick={() => onFontSizeChange(undefined)}
+              title={t('builder.sectionHeader.fontSizeAuto')}
+              className={`px-2 h-6 font-mono text-[10px] uppercase rounded-none border transition-all ${
+                section.fontSize === undefined
+                  ? 'bg-blue-700 text-white border-blue-700 shadow-sw-xs'
+                  : 'bg-white text-ink-soft border-steel-grey hover:border-black'
+              }`}
+            >
+              {t('builder.sectionHeader.fontSizeAutoShort')}
+            </button>
+            {([1, 2, 3, 4, 5] as SpacingLevel[]).map((level) => (
+              <button
+                key={level}
+                type="button"
+                onClick={() => onFontSizeChange(level)}
+                className={`w-6 h-6 font-mono text-xs rounded-none border transition-all ${
+                  section.fontSize === level
+                    ? 'bg-blue-700 text-white border-blue-700 shadow-sw-xs'
+                    : 'bg-white text-ink-soft border-steel-grey hover:border-black'
+                }`}
+              >
+                {level}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Section Content */}
       {children}

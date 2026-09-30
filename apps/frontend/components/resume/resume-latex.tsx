@@ -5,7 +5,8 @@ import type {
   SectionMeta,
   AdditionalSectionLabels,
 } from '@/components/dashboard/resume-component';
-import { getSortedSections } from '@/lib/utils/section-helpers';
+import { getSortedSections, getSectionFontSizeStyle } from '@/lib/utils/section-helpers';
+import { getVisibleAdditionalGroups } from '@/lib/utils/additional-groups';
 import { formatDateRange } from '@/lib/utils';
 import { SafeHtml } from './safe-html';
 import baseStyles from './styles/_base.module.css';
@@ -14,6 +15,7 @@ import styles from './styles/latex.module.css';
 interface ResumeLatexProps {
   data: ResumeData;
   showContactIcons?: boolean;
+  justifyBullets?: boolean;
   additionalSectionLabels?: Partial<AdditionalSectionLabels>;
 }
 
@@ -32,6 +34,7 @@ interface ResumeLatexProps {
 export const ResumeLatex: React.FC<ResumeLatexProps> = ({
   data,
   showContactIcons = false,
+  justifyBullets = false,
   additionalSectionLabels,
 }) => {
   const { personalInfo, summary, workExperience, education, personalProjects, additional } = data;
@@ -99,17 +102,26 @@ export const ResumeLatex: React.FC<ResumeLatexProps> = ({
   ].filter(Boolean);
 
   // Company-first entry header: bold company / bold dates, then italic role / italic location.
+  // secondaryDates (experience only) covers a second, non-contiguous employment
+  // period at the same role/company — rendered as its own right-aligned line
+  // directly below the primary dates.
   const renderEntryHeader = (
     primary?: string,
     dates?: string,
     secondary?: string,
-    location?: string
+    location?: string,
+    secondaryDates?: string
   ) => (
     <>
       <div className={`flex justify-between items-baseline ${baseStyles['resume-row-tight']}`}>
         <span className={styles.entryPrimary}>{primary}</span>
         {dates && <span className={`${styles.entryDates} ml-4`}>{formatDateRange(dates)}</span>}
       </div>
+      {secondaryDates && (
+        <div className="flex justify-end">
+          <span className={styles.entryDates}>{formatDateRange(secondaryDates)}</span>
+        </div>
+      )}
       {(secondary || location) && (
         <div className={`flex justify-between items-baseline ${baseStyles['resume-row']}`}>
           {secondary && <span className={styles.entrySecondary}>{secondary}</span>}
@@ -126,7 +138,7 @@ export const ResumeLatex: React.FC<ResumeLatexProps> = ({
         {items.map((desc, index) => (
           <li key={index} className="flex">
             <span className="mr-1.5 flex-shrink-0">•&nbsp;</span>
-            <span>
+            <span className={justifyBullets ? 'text-justify' : undefined}>
               <SafeHtml html={desc} />
             </span>
           </li>
@@ -143,21 +155,35 @@ export const ResumeLatex: React.FC<ResumeLatexProps> = ({
       case 'summary':
         if (!summary) return null;
         return (
-          <div key={section.id} className={baseStyles['resume-section']}>
+          <div
+            key={section.id}
+            className={baseStyles['resume-section']}
+            style={getSectionFontSizeStyle(section)}
+          >
             <h3 className={styles.sectionTitle}>{section.displayName}</h3>
-            <p className={`text-justify ${baseStyles['resume-text']}`}>{summary}</p>
+            <p className={`text-justify ${baseStyles['resume-text-sm']}`}>{summary}</p>
           </div>
         );
 
       case 'workExperience':
         if (!workExperience || workExperience.length === 0) return null;
         return (
-          <div key={section.id} className={baseStyles['resume-section']}>
+          <div
+            key={section.id}
+            className={baseStyles['resume-section']}
+            style={getSectionFontSizeStyle(section)}
+          >
             <h3 className={styles.sectionTitle}>{section.displayName}</h3>
             <div className={baseStyles['resume-items']}>
               {workExperience.map((exp) => (
                 <div key={exp.id} className={baseStyles['resume-item']}>
-                  {renderEntryHeader(exp.company, exp.years, exp.title, exp.location)}
+                  {renderEntryHeader(
+                    exp.company,
+                    exp.years,
+                    exp.title,
+                    exp.location,
+                    exp.secondaryYears
+                  )}
                   {renderBullets(exp.description)}
                 </div>
               ))}
@@ -168,7 +194,11 @@ export const ResumeLatex: React.FC<ResumeLatexProps> = ({
       case 'personalProjects':
         if (!personalProjects || personalProjects.length === 0) return null;
         return (
-          <div key={section.id} className={baseStyles['resume-section']}>
+          <div
+            key={section.id}
+            className={baseStyles['resume-section']}
+            style={getSectionFontSizeStyle(section)}
+          >
             <h3 className={styles.sectionTitle}>{section.displayName}</h3>
             <div className={baseStyles['resume-items']}>
               {personalProjects.map((project) => (
@@ -240,12 +270,24 @@ export const ResumeLatex: React.FC<ResumeLatexProps> = ({
       case 'education':
         if (!education || education.length === 0) return null;
         return (
-          <div key={section.id} className={baseStyles['resume-section']}>
+          <div
+            key={section.id}
+            className={baseStyles['resume-section']}
+            style={getSectionFontSizeStyle(section)}
+          >
             <h3 className={styles.sectionTitle}>{section.displayName}</h3>
             <div className={baseStyles['resume-items']}>
               {education.map((edu) => (
                 <div key={edu.id} className={baseStyles['resume-item']}>
                   {renderEntryHeader(edu.institution, edu.years, edu.degree)}
+                  {edu.note && (
+                    <p
+                      className={`italic ${baseStyles['resume-text-sm']} ${baseStyles['resume-row-tight']}`}
+                      style={{ marginTop: 'calc(var(--item-gap) * -1)' }}
+                    >
+                      {edu.note}
+                    </p>
+                  )}
                   {edu.description && (
                     <p className={baseStyles['resume-text-sm']}>{edu.description}</p>
                   )}
@@ -263,6 +305,7 @@ export const ResumeLatex: React.FC<ResumeLatexProps> = ({
             additional={additional}
             displayName={section.displayName}
             labels={additionalSectionLabels}
+            style={getSectionFontSizeStyle(section)}
           />
         );
 
@@ -322,7 +365,8 @@ const AdditionalSection: React.FC<{
   additional: ResumeData['additional'];
   displayName?: string;
   labels?: Partial<AdditionalSectionLabels>;
-}> = ({ additional, displayName = 'Skills & Awards', labels }) => {
+  style?: React.CSSProperties;
+}> = ({ additional, displayName = 'Skills & Awards', labels, style }) => {
   if (!additional) return null;
 
   const clean = (items?: string[]) =>
@@ -332,6 +376,7 @@ const AdditionalSection: React.FC<{
   const languages = clean(additional.languages);
   const certificationsTraining = clean(additional.certificationsTraining);
   const awards = clean(additional.awards);
+  const additionalGroups = getVisibleAdditionalGroups(additional.additionalGroups);
 
   const mergedLabels: AdditionalSectionLabels = {
     technicalSkills: labels?.technicalSkills ?? 'Technical Skills:',
@@ -342,6 +387,7 @@ const AdditionalSection: React.FC<{
 
   const hasContent =
     technicalSkills.length > 0 ||
+    additionalGroups.length > 0 ||
     languages.length > 0 ||
     certificationsTraining.length > 0 ||
     awards.length > 0;
@@ -356,10 +402,13 @@ const AdditionalSection: React.FC<{
     ) : null;
 
   return (
-    <div className={baseStyles['resume-section']}>
+    <div className={baseStyles['resume-section']} style={style}>
       <h3 className={styles.sectionTitle}>{displayName}</h3>
       <div className={`${baseStyles['resume-stack']} ${baseStyles['resume-text-sm']}`}>
         {line(mergedLabels.technicalSkills, technicalSkills)}
+        {additionalGroups.map((group) => (
+          <React.Fragment key={group.id}>{line(`${group.label}:`, group.items)}</React.Fragment>
+        ))}
         {line(mergedLabels.languages, languages)}
         {line(mergedLabels.certifications, certificationsTraining)}
         {line(mergedLabels.awards, awards)}
@@ -379,6 +428,8 @@ const DynamicResumeSectionLatex: React.FC<{
   const customSection = resumeData.customSections?.[sectionMeta.key];
   if (!customSection) return null;
 
+  const visibleGroups = getVisibleAdditionalGroups(customSection.additionalGroups);
+
   const hasContent = (() => {
     switch (sectionMeta.sectionType) {
       case 'text':
@@ -386,7 +437,7 @@ const DynamicResumeSectionLatex: React.FC<{
       case 'itemList':
         return Boolean(customSection.items?.length);
       case 'stringList':
-        return Boolean(customSection.strings?.length);
+        return Boolean(customSection.strings?.length) || visibleGroups.length > 0;
       default:
         return false;
     }
@@ -395,10 +446,10 @@ const DynamicResumeSectionLatex: React.FC<{
   if (!hasContent) return null;
 
   return (
-    <div className={baseStyles['resume-section']}>
+    <div className={baseStyles['resume-section']} style={getSectionFontSizeStyle(sectionMeta)}>
       <h3 className={styles.sectionTitle}>{sectionMeta.displayName}</h3>
       {sectionMeta.sectionType === 'text' && customSection.text?.trim() && (
-        <p className={`text-justify ${baseStyles['resume-text']}`}>{customSection.text}</p>
+        <p className={`text-justify ${baseStyles['resume-text-sm']}`}>{customSection.text}</p>
       )}
       {sectionMeta.sectionType === 'itemList' && customSection.items?.length ? (
         <div className={baseStyles['resume-items']}>
@@ -425,9 +476,21 @@ const DynamicResumeSectionLatex: React.FC<{
           ))}
         </div>
       ) : null}
-      {sectionMeta.sectionType === 'stringList' && customSection.strings?.length ? (
-        <div className={baseStyles['resume-text-sm']}>{customSection.strings.join(', ')}</div>
-      ) : null}
+      {sectionMeta.sectionType === 'stringList' && (
+        <div className={`${baseStyles['resume-stack']} ${baseStyles['resume-text-sm']}`}>
+          {customSection.strings?.length ? <div>{customSection.strings.join(', ')}</div> : null}
+          {visibleGroups.length > 0 && (
+            <div className="grid grid-cols-[max-content_1fr] gap-x-2 gap-y-1">
+              {visibleGroups.map((group) => (
+                <React.Fragment key={group.id}>
+                  <span className="font-bold whitespace-nowrap">{group.label}:</span>
+                  <span>{group.items.join(', ')}</span>
+                </React.Fragment>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

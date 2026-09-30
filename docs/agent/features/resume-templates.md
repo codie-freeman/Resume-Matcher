@@ -13,6 +13,7 @@
 | `latex` | Classic serif single-column with Title-Case ruled headers and company-first entries (LaTeX-style). Single-typeface — driven by the Header Font control |
 | `clean` | Minimal sans single-column with large understated gray UPPERCASE headers and single-line entries. Single-typeface — driven by the Body Font control |
 | `vivid` | Colorful two-column (Awesome-CV lineage): two-tone accent name, monospace contact with circular icons, accent small-caps headers, accent arrow bullets. Supports the Accent Color control |
+| `custom` | Same layout as Clean, but its "Serif" font choice resolves to the Merriweather typeface instead of the generic system serif stack. Single-typeface — driven by the Header/Body Font controls |
 
 ## Formatting Controls
 
@@ -23,7 +24,9 @@
 | Item Spacing | 1-5 | 2 | Gap between items within sections |
 | Line Height | 1-5 | 3 | Text line height |
 | Base Font Size | 1-5 | 3 | Overall text scale (11-16px) |
-| Header Scale | 1-5 | 3 | Name/section header size multiplier |
+| Header Scale | 1-5 | 3 | Section header size multiplier (also scales the tagline/title line under the name) |
+| Name Size | 1-5 | 3 | Font size of the name heading at the top of the résumé, independent of Header Scale/Base |
+| Contact Size | 1-5 | 3 | Font size of contact details (phone/email/location/links), independent of every other font-size control |
 | Header Font | serif/sans-serif/mono | serif | Font family for headers |
 | Body Font | serif/sans-serif/mono | sans-serif | Font family for body text |
 | Compact Mode | boolean | false | Apply 0.6x spacing multiplier (spacing only; margins unchanged) |
@@ -49,7 +52,9 @@
 Templates use CSS custom properties for styling:
 
 - `--section-gap`, `--item-gap`, `--line-height` - Spacing
-- `--font-size-base`, `--header-scale`, `--section-header-scale` - Typography
+- `--font-size-base`, `--section-header-font-size` - Typography (base text, section headers)
+- `--name-font-size` - Name heading size (also scales the tagline/title line as a fraction)
+- `--contact-font-size` - Contact details (phone/email/location) size
 - `--header-font` - Header font family
 - `--body-font` - Body text font family
 - `--margin-top/bottom/left/right` - Page margins
