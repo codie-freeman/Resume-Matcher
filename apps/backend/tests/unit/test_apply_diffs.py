@@ -701,10 +701,16 @@ class TestApplyDiffsNewPaths:
             ("education[0].degree", "B.S. Computer Science", "M.S. Computer Science"),
             ("education[0].institution", "MIT", "Stanford"),
             ("education[0].years", "2014 - 2018", "2014 - 2020"),
+            ("education[0].note", None, "including a foundation year"),
         ],
     )
     def test_reject_blocked_education_fields(self, sample_resume, path, original, value):
-        """Degree/institution/years stay blocked even though description is now allowed."""
+        """Degree/institution/years/note stay blocked even though description is allowed.
+
+        `note` is a user-authored footnote (e.g. justifying an extended degree
+        duration) and must never be auto-generated or altered by the AI tailoring
+        pipeline.
+        """
         changes = [
             ResumeChange(
                 path=path,

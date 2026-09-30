@@ -874,6 +874,11 @@ def _supports_temperature(model_name: str, temperature: float | None = None) -> 
     Uses LiteLLM model registry for capability detection, with
     provider-specific fallbacks for known restrictions:
       - Anthropic claude-opus-4.*: temperature is deprecated
+      - Anthropic Claude 5 family (opus-5/sonnet-5/fable-5): temperature is
+        deprecated. LiteLLM's registry still lists "temperature" under
+        supported_openai_params for these (registry data lags new releases),
+        but the live Anthropic API 400s with "`temperature` is deprecated for
+        this model" — confirmed directly against the API for claude-sonnet-5.
       - Moonshot kimi-k2.6: only temperature=1 allowed
 
     Queries LiteLLM's model info for every provider so that capability is
@@ -911,6 +916,12 @@ def _supports_temperature(model_name: str, temperature: float | None = None) -> 
     # Provider-specific restrictions not captured by the registry.
     # Anthropic Opus 4.x deprecated temperature entirely.
     if "claude-opus-4" in model_name.lower():
+        return False
+
+    # Anthropic Claude 5 family (opus-5/sonnet-5/fable-5) also deprecated
+    # temperature. Matches un-dated model IDs like "claude-sonnet-5" without
+    # catching older dated snapshots (e.g. "claude-haiku-4-5-20251001").
+    if re.search(r"claude-(opus|sonnet|fable)-5$", model_name.lower()):
         return False
 
     # Moonshot kimi-k2.6 only allows temperature=1.

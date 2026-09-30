@@ -51,6 +51,23 @@ class TestSupportsTemperature:
         assert _supports_temperature("anthropic/claude-opus-4-7", 1.0) is False
 
     @patch("app.llm.litellm.get_model_info")
+    def test_claude5_family_deprecated_temperature(self, mock_get_model_info):
+        """Anthropic Claude 5 family (opus/sonnet/fable-5) deprecated temperature.
+
+        LiteLLM's registry still lists "temperature" as supported for these —
+        the live Anthropic API rejects it regardless (confirmed against the
+        real API for claude-sonnet-5, which is what this regression guards).
+        """
+        mock_get_model_info.return_value = {
+            "supported_openai_params": ["temperature", "max_tokens"]
+        }
+        assert _supports_temperature("anthropic/claude-sonnet-5", 0.7) is False
+        assert _supports_temperature("anthropic/claude-opus-5", 0.7) is False
+        assert _supports_temperature("anthropic/claude-fable-5", 0.7) is False
+        # A dated Claude 4.5 snapshot is a different family — unaffected.
+        assert _supports_temperature("anthropic/claude-haiku-4-5-20251001", 0.7) is True
+
+    @patch("app.llm.litellm.get_model_info")
     def test_kimi_k26_only_allows_one(self, mock_get_model_info):
         """Moonshot kimi-k2.6 only allows temperature=1."""
         mock_get_model_info.return_value = {

@@ -17,6 +17,7 @@ from typing import Any
 from app.llm import complete_json
 from app.prompts.refinement import (
     AI_PHRASE_BLACKLIST,
+    AI_PHRASE_REGEX_PATTERNS,
     AI_PHRASE_REPLACEMENTS,
     KEYWORD_INJECTION_PROMPT,
 )
@@ -254,14 +255,32 @@ def remove_ai_phrases(
         if phrase.lower() in jd_lower:
             jd_protected.add(phrase.lower())
 
-    if jd_protected:
-        logger.info("JD-protected phrases (skipping removal): %s", jd_protected)
+    # Regex patterns (for phrases whose wording varies too much for an exact
+    # substring match, e.g. "highly motivated" / "highly-motivated"). Compiled
+    # once here rather than per clean_text() call. JD-protection uses the same
+    # pattern rather than a literal `in` check.
+    compiled_regex_patterns = [
+        (pattern_src, re.compile(pattern_src, re.IGNORECASE), replacement)
+        for pattern_src, replacement in AI_PHRASE_REGEX_PATTERNS.items()
+    ]
+    jd_protected_patterns: set[str] = {
+        pattern_src
+        for pattern_src, compiled, _ in compiled_regex_patterns
+        if compiled.search(job_description)
+    }
+
+    if jd_protected or jd_protected_patterns:
+        logger.info(
+            "JD-protected phrases (skipping removal): %s",
+            jd_protected | jd_protected_patterns,
+        )
 
     # Use a set to avoid duplicate tracking
     removed: set[str] = set()
 
     def clean_text(text: str) -> str:
         cleaned = text
+        changed = False
         for phrase in AI_PHRASE_BLACKLIST:
             # Skip phrases that appear in the job description
             if phrase.lower() in jd_protected:
@@ -272,6 +291,22 @@ def remove_ai_phrases(
                 # Case-insensitive replacement
                 pattern = re.compile(re.escape(phrase), re.IGNORECASE)
                 cleaned = pattern.sub(replacement, cleaned)
+                changed = True
+
+        for pattern_src, compiled, replacement in compiled_regex_patterns:
+            if pattern_src in jd_protected_patterns:
+                continue
+            match = compiled.search(cleaned)
+            if match:
+                removed.add(match.group(0).lower())
+                cleaned = compiled.sub(replacement, cleaned)
+                changed = True
+
+        if changed:
+            # Collapse whitespace left behind by a removal (e.g. a deleted
+            # opener leaving a leading space) without touching untouched text.
+            cleaned = re.sub(r"[ \t]{2,}", " ", cleaned).strip()
+
         return cleaned
 
     def clean_recursive(obj: Any) -> Any:

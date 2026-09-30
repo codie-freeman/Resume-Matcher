@@ -38,6 +38,7 @@ AI_PHRASE_BLACKLIST: set[str] = {
     "impactful",
     "proactive",
     "proactively",
+    "detail-oriented",
     "stakeholder",
     "deliverables",
     "bandwidth",
@@ -104,6 +105,7 @@ AI_PHRASE_REPLACEMENTS: dict[str, str] = {
     "impactful": "effective",
     "proactive": "active",
     "proactively": "actively",
+    "detail-oriented": "",
     "stakeholder": "team member",
     "deliverables": "outputs",
     "bandwidth": "capacity",
@@ -131,6 +133,15 @@ AI_PHRASE_REPLACEMENTS: dict[str, str] = {
     "\u2014": ", ",  # Em-dash to comma
     "---": ", ",
     "--": ", ",
+}
+
+# Regex patterns for AI phrases whose wording varies (spacing, hyphenation,
+# case) too much for an exact-substring match in AI_PHRASE_BLACKLIST. Maps
+# each pattern to its replacement, same as AI_PHRASE_REPLACEMENTS. Matched
+# case-insensitively; unlike the blacklist, JD-protection is checked with the
+# same pattern rather than a literal `in` check.
+AI_PHRASE_REGEX_PATTERNS: dict[str, str] = {
+    r"highly[\s-]+motivated": "",
 }
 
 

@@ -69,6 +69,44 @@ class TestRemoveAiPhrases:
         # The input dict should not be mutated by remove_ai_phrases
         assert data == data_before
 
+    def test_removes_detail_oriented(self, sample_resume):
+        data = copy.deepcopy(sample_resume)
+        data["summary"] = "Detail-oriented engineer with a passion for testing"
+        cleaned, removed = remove_ai_phrases(data)
+        assert "detail-oriented" in [r.lower() for r in removed]
+        assert "detail-oriented" not in cleaned["summary"].lower()
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "Highly motivated software engineer",
+            "highly-motivated software engineer",
+            "HIGHLY   MOTIVATED software engineer",
+        ],
+    )
+    def test_regex_removes_highly_motivated_variants(self, sample_resume, text):
+        data = copy.deepcopy(sample_resume)
+        data["summary"] = text
+        cleaned, removed = remove_ai_phrases(data)
+        assert any('motivated' in r.lower() for r in removed)
+        assert "motivated" not in cleaned["summary"].lower()
+
+    def test_regex_and_literal_removal_leaves_no_double_spaces(self, sample_resume):
+        data = copy.deepcopy(sample_resume)
+        data["summary"] = "Highly motivated and detail-oriented software engineer"
+        cleaned, _removed = remove_ai_phrases(data)
+        assert "  " not in cleaned["summary"]
+        assert cleaned["summary"] == cleaned["summary"].strip()
+
+    def test_protects_jd_regex_phrase(self, sample_resume):
+        data = copy.deepcopy(sample_resume)
+        data["summary"] = "Highly motivated engineer"
+        cleaned, removed = remove_ai_phrases(
+            data, job_description="Looking for a highly motivated candidate"
+        )
+        assert not any('motivated' in r.lower() for r in removed)
+        assert "highly motivated" in cleaned["summary"].lower()
+
 
 class TestValidateMasterAlignment:
     """Tests for validate_master_alignment() — fabrication detection."""
