@@ -3,6 +3,7 @@
     "save": "Guardar",
     "saving": "Guardando...",
     "cancel": "Cancelar",
+    "or": "o",
     "delete": "Eliminar",
     "edit": "Editar",
     "download": "Descargar",
@@ -133,7 +134,14 @@
         "languages": "Español\nInglés",
         "certifications": "AWS Solution Architect\nGoogle Analytics",
         "awards": "Empleado del mes\nGanador de hackathon"
-      }
+      },
+      "additionalSectionsLabel": "Secciones adicionales",
+      "additionalSectionsEmpty": "Aún no hay secciones adicionales. Añade una para cosas como Publicaciones, Voluntariado u otro grupo de Idiomas, independiente de los campos anteriores.",
+      "addSection": "Añadir sección",
+      "sectionNameLabel": "Nombre de la sección",
+      "sectionNamePlaceholder": "p. ej., Publicaciones, Voluntariado, Herramientas",
+      "sectionItemsLabel": "Elementos",
+      "sectionItemsPlaceholder": "Elemento uno\nElemento dos"
     },
     "customSections": {
       "dialogTitle": "Agregar sección personalizada",
@@ -170,7 +178,10 @@
       "moveDown": "Mover abajo",
       "deleteSection": "Eliminar sección",
       "deleteTitle": "Eliminar sección",
-      "deleteDescription": "¿Seguro que quieres eliminar \"{name}\"? Esta acción no se puede deshacer."
+      "deleteDescription": "¿Seguro que quieres eliminar \"{name}\"? Esta acción no se puede deshacer.",
+      "fontSize": "Tamaño",
+      "fontSizeAuto": "Usar el tamaño de fuente Base global",
+      "fontSizeAutoShort": "Auto"
     },
     "previewTabs": {
       "resume": "CURRÍCULUM",
@@ -195,6 +206,7 @@
       "coverLetterDescription": "Genera una carta de presentación adaptada según tu currículum y la descripción del puesto.",
       "outreachDescription": "Genera un mensaje de contacto breve para LinkedIn o email según tu currículum y la descripción del puesto.",
       "generateButton": "Generar {title}",
+      "writeManually": "Escribirlo yo mismo",
       "coverLetterFooter": "Consejo: adapta primero para mejores resultados.",
       "outreachFooter": "Consejo: manténlo breve y personalizado.",
       "interviewPrepDescription": "Genera preparación para entrevistas según tu currículum adaptado y la descripción del puesto.",
@@ -310,14 +322,19 @@
         "addFirstJob": "Agregar primer trabajo",
         "fields": {
           "jobTitle": "Puesto",
-          "company": "Empresa"
+          "company": "Empresa",
+          "secondaryYears": "Fechas secundarias (opcional)"
         },
         "placeholders": {
           "jobTitle": "Desarrollador senior",
           "company": "Tech Corp",
           "location": "Remoto / Ciudad",
           "years": "Ene 2020 - Actualidad",
+          "secondaryYears": "Mar 2023 - Jul 2025",
           "description": "Describe tu logro..."
+        },
+        "hints": {
+          "secondaryYears": "Para un segundo período no consecutivo en este puesto"
         }
       },
       "education": {
@@ -327,13 +344,15 @@
           "institution": "Institución",
           "degree": "Título",
           "description": "Descripción",
-          "descriptionOptional": "Descripción (opcional)"
+          "descriptionOptional": "Descripción (opcional)",
+          "note": "Nota (opcional)"
         },
         "placeholders": {
           "institution": "Nombre de la universidad",
           "degree": "Grado en ...",
           "years": "Ago 2016 - May 2020",
-          "description": "Detalles adicionales..."
+          "description": "Detalles adicionales...",
+          "note": "p. ej. incluyendo un año de fundamentos o una interrupción de estudios aprobada"
         }
       },
       "projects": {
@@ -385,6 +404,10 @@
         "vivid": {
           "name": "Vívido",
           "description": "Diseño de dos columnas colorido con encabezados de acento y viñetas de flecha"
+        },
+        "custom": {
+          "name": "Personalizado",
+          "description": "Diseño Limpio con la tipografía serif Merriweather"
         }
       },
       "accentColor": "Color de acento",
@@ -409,6 +432,8 @@
       "fontSize": "Tamaño de fuente",
       "baseFontSize": "Base",
       "headerScale": "Encabezados",
+      "nameFontSize": "Nombre",
+      "contactFontSize": "Contacto",
       "headerFontFamily": "Encabezados",
       "bodyFontFamily": "Cuerpo",
       "fontNames": {
@@ -419,13 +444,16 @@
       "options": "Opciones",
       "compactMode": "Modo compacto",
       "contactIcons": "Iconos de contacto",
+      "justifyBullets": "Justificar texto de viñetas",
       "effectiveOutput": "Salida efectiva",
       "effectiveMargins": "Márgenes (mm): S{top} I{bottom} Izq{left} Der{right}",
       "effectiveSectionGap": "Espacio entre secciones",
       "effectiveItemGap": "Espacio entre elementos",
       "effectiveLineHeight": "Interlineado",
       "effectiveBaseFont": "Fuente base",
-      "effectiveHeaderScale": "Escala de encabezados",
+      "effectiveHeaderScale": "Tamaño de encabezados",
+      "effectiveNameFontSize": "Tamaño del nombre",
+      "effectiveContactFontSize": "Tamaño de contacto",
       "effectiveHeaderFont": "Fuente de encabezados",
       "effectiveBodyFont": "Fuente del cuerpo",
       "compactHint": "El modo compacto reduce el espaciado y el interlineado. Los márgenes y la fuente base se mantienen.",
@@ -516,6 +544,9 @@
     "subtitle": "Optimiza tu currículum para un trabajo específico",
     "heroTitle": "Personaliza tu currículum",
     "selectResume": "Seleccionar Currículum",
+    "baseResumeDescription": "Elige de qué currículum partir — por defecto se usa tu currículum maestro.",
+    "masterResumeOption": "Currículum Maestro (Predeterminado)",
+    "untitledResumeOption": "Currículum sin título",
     "pasteJobDescription": "Pegar Descripción del Trabajo",
     "pasteJobDescriptionBelow": "Pega la descripción del trabajo abajo",
     "jobDescriptionPlaceholder": "Pega la descripción del trabajo aquí...",
@@ -537,6 +568,8 @@
     },
     "analyzeJob": "Analizar Trabajo",
     "generateTailored": "Generar CV Personalizado",
+    "createWithoutAi": "Crear sin IA",
+    "createWithoutAiDescription": "Copia el currículum seleccionado tal cual, vinculado a esta oferta, para que puedas editarlo manualmente — sin llamadas a la API.",
     "matchScore": "Puntuación de Coincidencia",
     "suggestions": "Sugerencias",
     "keywords": "Palabras Clave a Incluir",
@@ -586,7 +619,8 @@
       "failedToGenerate": "No se pudo generar el currículum. Revisa tu clave API en Configuración e inténtalo de nuevo.",
       "timeout": "La solicitud agotó el tiempo de espera. Inténtalo de nuevo con una descripción del trabajo más corta o comprueba tu conexión.",
       "failedToPreview": "No se pudo previsualizar el currículum. Revisa tu clave API en Configuración e inténtalo de nuevo.",
-      "failedToConfirm": "No se pudieron aplicar los cambios. Inténtalo de nuevo."
+      "failedToConfirm": "No se pudieron aplicar los cambios. Inténtalo de nuevo.",
+      "failedToCreateManual": "No se pudo crear el currículum. Inténtalo de nuevo."
     }
   },
   "settings": {
@@ -777,6 +811,7 @@
     "zoomOut": "Alejar"
   },
   "resume": {
+    "pdfTitle": "CV de {name}",
     "personalInfo": {
       "name": "Nombre Completo",
       "title": "Título del Puesto",
@@ -814,6 +849,7 @@
     }
   },
   "coverLetter": {
+    "pdfTitle": "Carta de Presentación de {name}",
     "title": "Carta de Presentación",
     "generate": "Generar Carta de Presentación",
     "regenerate": "Regenerar",

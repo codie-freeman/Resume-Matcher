@@ -3,6 +3,7 @@
     "save": "Save",
     "saving": "Saving...",
     "cancel": "Cancel",
+    "or": "or",
     "delete": "Delete",
     "edit": "Edit",
     "download": "Download",
@@ -133,7 +134,14 @@
         "languages": "English\nSpanish",
         "certifications": "AWS Solution Architect\nGoogle Analytics",
         "awards": "Employee of the Month\nHackathon Winner"
-      }
+      },
+      "additionalSectionsLabel": "Additional Sections",
+      "additionalSectionsEmpty": "No additional sections yet. Add one for things like Publications, Volunteer Work, or another Languages group — separate from the fields above.",
+      "addSection": "Add Section",
+      "sectionNameLabel": "Section Name",
+      "sectionNamePlaceholder": "e.g., Publications, Volunteer Work, Tools",
+      "sectionItemsLabel": "Items",
+      "sectionItemsPlaceholder": "Item one\nItem two"
     },
     "customSections": {
       "dialogTitle": "Add Custom Section",
@@ -170,7 +178,10 @@
       "moveDown": "Move down",
       "deleteSection": "Delete section",
       "deleteTitle": "Delete Section",
-      "deleteDescription": "Are you sure you want to delete \"{name}\"? This action cannot be undone."
+      "deleteDescription": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+      "fontSize": "Size",
+      "fontSizeAuto": "Use the global Base font size",
+      "fontSizeAutoShort": "Auto"
     },
     "previewTabs": {
       "resume": "RESUME",
@@ -195,6 +206,7 @@
       "coverLetterDescription": "Generate a tailored cover letter based on your resume and job description.",
       "outreachDescription": "Generate a concise outreach message for LinkedIn or email based on your resume and job description.",
       "generateButton": "Generate {title}",
+      "writeManually": "Write it myself",
       "coverLetterFooter": "Tip: tailor first for best results.",
       "outreachFooter": "Tip: keep it short and personalized.",
       "interviewPrepDescription": "Generate role-specific interview preparation based on your tailored resume and job description.",
@@ -310,14 +322,19 @@
         "addFirstJob": "Add First Job",
         "fields": {
           "jobTitle": "Job Title",
-          "company": "Company"
+          "company": "Company",
+          "secondaryYears": "Secondary Dates (optional)"
         },
         "placeholders": {
           "jobTitle": "Senior Developer",
           "company": "Tech Corp",
           "location": "Remote / City",
           "years": "Jan 2020 - Present",
+          "secondaryYears": "Mar 2023 - Jul 2025",
           "description": "Describe your achievement..."
+        },
+        "hints": {
+          "secondaryYears": "For a second, non-consecutive period in this role"
         }
       },
       "education": {
@@ -327,13 +344,15 @@
           "institution": "Institution",
           "degree": "Degree",
           "description": "Description",
-          "descriptionOptional": "Description (Optional)"
+          "descriptionOptional": "Description (Optional)",
+          "note": "Note (Optional)"
         },
         "placeholders": {
           "institution": "University Name",
           "degree": "Bachelor of Science",
           "years": "Aug 2016 - May 2020",
-          "description": "Additional details..."
+          "description": "Additional details...",
+          "note": "e.g. including a foundation year or approved interruption of study"
         }
       },
       "projects": {
@@ -385,6 +404,10 @@
         "vivid": {
           "name": "Vivid",
           "description": "Colorful two-column layout with accent headers and arrow bullets"
+        },
+        "custom": {
+          "name": "Custom",
+          "description": "Clean layout set in the Merriweather serif typeface"
         }
       },
       "accentColor": "Accent Color",
@@ -409,6 +432,8 @@
       "fontSize": "Font Size",
       "baseFontSize": "Base",
       "headerScale": "Headers",
+      "nameFontSize": "Name",
+      "contactFontSize": "Contact",
       "headerFontFamily": "Headers",
       "bodyFontFamily": "Body",
       "fontNames": {
@@ -419,13 +444,16 @@
       "options": "Options",
       "compactMode": "Compact Mode",
       "contactIcons": "Contact Icons",
+      "justifyBullets": "Justify Bullet Text",
       "effectiveOutput": "Effective Output",
       "effectiveMargins": "Margins (mm): T{top} B{bottom} L{left} R{right}",
       "effectiveSectionGap": "Section Gap",
       "effectiveItemGap": "Item Gap",
       "effectiveLineHeight": "Line Height",
       "effectiveBaseFont": "Base Font",
-      "effectiveHeaderScale": "Header Scale",
+      "effectiveHeaderScale": "Header Size",
+      "effectiveNameFontSize": "Name Size",
+      "effectiveContactFontSize": "Contact Size",
       "effectiveHeaderFont": "Header Font",
       "effectiveBodyFont": "Body Font",
       "compactHint": "Compact mode tightens spacing and line height. Margins and base font size stay literal.",
@@ -516,6 +544,9 @@
     "subtitle": "Optimize your resume for a specific job",
     "heroTitle": "Tailor Your Resume",
     "selectResume": "Select Resume",
+    "baseResumeDescription": "Choose which resume to start from — defaults to your master resume.",
+    "masterResumeOption": "Master Resume (Default)",
+    "untitledResumeOption": "Untitled Resume",
     "pasteJobDescription": "Paste Job Description",
     "pasteJobDescriptionBelow": "Paste Job Description Below",
     "jobDescriptionPlaceholder": "Paste the job description here...",
@@ -537,6 +568,8 @@
     },
     "analyzeJob": "Analyze Job",
     "generateTailored": "Generate Tailored Resume",
+    "createWithoutAi": "Create Without AI",
+    "createWithoutAiDescription": "Copies the selected resume as-is, linked to this job, so you can edit it manually — no API call.",
     "setupRequiredTitle": "[ SETUP REQUIRED ]",
     "noApiKeyMessage": "> No API key configured. Resume tailoring requires an LLM provider.",
     "configureApiKey": "Configure API Key",
@@ -586,7 +619,8 @@
       "failedToGenerate": "Couldn't generate the resume. Check your API key in Settings, then try again.",
       "timeout": "The request timed out. Please try again with a shorter job description or check your connection.",
       "failedToPreview": "Couldn't preview the resume. Check your API key in Settings, then try again.",
-      "failedToConfirm": "Couldn't apply the changes. Please try again."
+      "failedToConfirm": "Couldn't apply the changes. Please try again.",
+      "failedToCreateManual": "Couldn't create the resume. Please try again."
     }
   },
   "settings": {
@@ -777,6 +811,7 @@
     "zoomOut": "Zoom out"
   },
   "resume": {
+    "pdfTitle": "{name} CV",
     "personalInfo": {
       "name": "Full Name",
       "title": "Job Title",
@@ -814,6 +849,7 @@
     }
   },
   "coverLetter": {
+    "pdfTitle": "{name} Cover Letter",
     "title": "Cover Letter",
     "generate": "Generate Cover Letter",
     "regenerate": "Regenerate",

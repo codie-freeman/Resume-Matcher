@@ -3,6 +3,7 @@
     "save": "保存",
     "saving": "保存中...",
     "cancel": "取消",
+    "or": "或",
     "delete": "删除",
     "edit": "编辑",
     "download": "下载",
@@ -133,7 +134,14 @@
         "languages": "中文\n英语",
         "certifications": "AWS 解决方案架构师\nGoogle Analytics",
         "awards": "月度最佳员工\n黑客松冠军"
-      }
+      },
+      "additionalSectionsLabel": "其他部分",
+      "additionalSectionsEmpty": "还没有其他部分。添加一个用于发表作品、志愿服务，或另一个语言分组，与上面的字段分开列出。",
+      "addSection": "添加部分",
+      "sectionNameLabel": "部分名称",
+      "sectionNamePlaceholder": "例如：发表作品、志愿服务、工具",
+      "sectionItemsLabel": "项目",
+      "sectionItemsPlaceholder": "项目一\n项目二"
     },
     "customSections": {
       "dialogTitle": "添加自定义板块",
@@ -170,7 +178,10 @@
       "moveDown": "下移",
       "deleteSection": "删除板块",
       "deleteTitle": "删除板块",
-      "deleteDescription": "确定要删除“{name}”吗？此操作无法撤销。"
+      "deleteDescription": "确定要删除“{name}”吗？此操作无法撤销。",
+      "fontSize": "大小",
+      "fontSizeAuto": "使用全局基础字号",
+      "fontSizeAutoShort": "自动"
     },
     "previewTabs": {
       "resume": "简历",
@@ -195,6 +206,7 @@
       "coverLetterDescription": "基于你的简历与职位描述生成定制求职信。",
       "outreachDescription": "基于你的简历与职位描述生成用于 LinkedIn 或邮件的外联消息。",
       "generateButton": "生成 {title}",
+      "writeManually": "自己撰写",
       "coverLetterFooter": "提示：先完成简历定制效果更佳。",
       "outreachFooter": "提示：尽量简短并加入个性化细节。",
       "interviewPrepDescription": "基于已定制简历和职位描述生成针对性的面试准备内容。",
@@ -310,14 +322,19 @@
         "addFirstJob": "添加第一条经历",
         "fields": {
           "jobTitle": "职位名称",
-          "company": "公司"
+          "company": "公司",
+          "secondaryYears": "第二段任职时间(可选)"
         },
         "placeholders": {
           "jobTitle": "高级开发工程师",
           "company": "科技公司",
           "location": "远程 / 城市",
           "years": "2020年1月 - 至今",
+          "secondaryYears": "2023年3月 - 2025年7月",
           "description": "描述你的成果..."
+        },
+        "hints": {
+          "secondaryYears": "适用于在同一职位有过第二段不连续的任职时间"
         }
       },
       "education": {
@@ -327,13 +344,15 @@
           "institution": "学校/机构",
           "degree": "学位/专业",
           "description": "描述",
-          "descriptionOptional": "描述（可选）"
+          "descriptionOptional": "描述（可选）",
+          "note": "备注（可选）"
         },
         "placeholders": {
           "institution": "某某大学",
           "degree": "工学学士",
           "years": "2016年8月 - 2020年5月",
-          "description": "补充说明..."
+          "description": "补充说明...",
+          "note": "例如：包含基础年级或经批准的休学"
         }
       },
       "projects": {
@@ -385,6 +404,10 @@
         "vivid": {
           "name": "鲜明",
           "description": "彩色双栏布局，强调色标题与箭头项目符号"
+        },
+        "custom": {
+          "name": "自定义",
+          "description": "简洁版式，采用 Merriweather 衬线字体"
         }
       },
       "accentColor": "强调色",
@@ -409,6 +432,8 @@
       "fontSize": "字号",
       "baseFontSize": "正文",
       "headerScale": "标题",
+      "nameFontSize": "姓名",
+      "contactFontSize": "联系方式",
       "headerFontFamily": "标题字体",
       "bodyFontFamily": "正文字体",
       "fontNames": {
@@ -419,13 +444,16 @@
       "options": "选项",
       "compactMode": "紧凑模式",
       "contactIcons": "联系方式图标",
+      "justifyBullets": "两端对齐项目符号文本",
       "effectiveOutput": "生效预览",
       "effectiveMargins": "页边距（mm）：上{top} 下{bottom} 左{left} 右{right}",
       "effectiveSectionGap": "板块间距",
       "effectiveItemGap": "条目间距",
       "effectiveLineHeight": "行高",
       "effectiveBaseFont": "正文字号",
-      "effectiveHeaderScale": "标题缩放",
+      "effectiveHeaderScale": "标题大小",
+      "effectiveNameFontSize": "姓名大小",
+      "effectiveContactFontSize": "联系方式大小",
       "effectiveHeaderFont": "标题字体",
       "effectiveBodyFont": "正文字体",
       "compactHint": "紧凑模式会收紧间距与行高；页边距与正文字号保持不变。",
@@ -516,6 +544,9 @@
     "subtitle": "为特定职位优化您的简历",
     "heroTitle": "定制您的简历",
     "selectResume": "选择简历",
+    "baseResumeDescription": "选择作为起点的简历——默认使用你的主简历。",
+    "masterResumeOption": "主简历(默认)",
+    "untitledResumeOption": "未命名简历",
     "pasteJobDescription": "粘贴职位描述",
     "pasteJobDescriptionBelow": "在下方粘贴职位描述",
     "jobDescriptionPlaceholder": "在此粘贴职位描述...",
@@ -537,6 +568,8 @@
     },
     "analyzeJob": "分析职位",
     "generateTailored": "生成定制简历",
+    "createWithoutAi": "不使用AI创建",
+    "createWithoutAiDescription": "直接复制所选简历并关联此职位,无需API调用即可手动编辑。",
     "setupRequiredTitle": "[ 需要配置 ]",
     "noApiKeyMessage": "> 未配置 API 密钥。定制简历需要 LLM 提供商。",
     "configureApiKey": "配置 API 密钥",
@@ -586,7 +619,8 @@
       "failedToGenerate": "无法生成简历。请在设置中检查 API 密钥后重试。",
       "timeout": "请求超时。请尝试使用更短的职位描述或检查网络连接后重试。",
       "failedToPreview": "无法预览简历。请在设置中检查 API 密钥后重试。",
-      "failedToConfirm": "无法应用更改。请重试。"
+      "failedToConfirm": "无法应用更改。请重试。",
+      "failedToCreateManual": "无法创建简历。请重试。"
     }
   },
   "settings": {
@@ -777,6 +811,7 @@
     "zoomOut": "缩小"
   },
   "resume": {
+    "pdfTitle": "{name}的简历",
     "personalInfo": {
       "name": "姓名",
       "title": "职位名称",
@@ -814,6 +849,7 @@
     }
   },
   "coverLetter": {
+    "pdfTitle": "{name}的求职信",
     "title": "求职信",
     "generate": "生成求职信",
     "regenerate": "重新生成",

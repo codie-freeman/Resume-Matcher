@@ -3,6 +3,7 @@
     "save": "Enregistrer",
     "saving": "Enregistrement...",
     "cancel": "Annuler",
+    "or": "ou",
     "delete": "Supprimer",
     "edit": "Modifier",
     "download": "Télécharger",
@@ -133,7 +134,14 @@
         "languages": "Français\nAnglais",
         "certifications": "AWS Solution Architect\nGoogle Analytics",
         "awards": "Employé du mois\nVainqueur de hackathon"
-      }
+      },
+      "additionalSectionsLabel": "Sections supplémentaires",
+      "additionalSectionsEmpty": "Aucune section supplémentaire pour le moment. Ajoutez-en une pour des éléments comme les Publications, le Bénévolat, ou un autre groupe Langues, distinct des champs ci-dessus.",
+      "addSection": "Ajouter une section",
+      "sectionNameLabel": "Nom de la section",
+      "sectionNamePlaceholder": "ex. : Publications, Bénévolat, Outils",
+      "sectionItemsLabel": "Éléments",
+      "sectionItemsPlaceholder": "Élément un\nÉlément deux"
     },
     "customSections": {
       "dialogTitle": "Ajouter une section personnalisée",
@@ -170,13 +178,17 @@
       "moveDown": "Déplacer vers le bas",
       "deleteSection": "Supprimer la section",
       "deleteTitle": "Supprimer la section",
-      "deleteDescription": "Êtes-vous sûr de vouloir supprimer \"{name}\" ? Cette action est irréversible."
+      "deleteDescription": "Êtes-vous sûr de vouloir supprimer \"{name}\" ? Cette action est irréversible.",
+      "fontSize": "Taille",
+      "fontSizeAuto": "Utiliser la taille de police de base globale",
+      "fontSizeAutoShort": "Auto"
     },
     "previewTabs": {
       "resume": "CV",
       "coverLetter": "LETTRE DE MOTIVATION",
       "outreach": "MESSAGE DE CONTACT",
-      "jdMatch": "CORRESPONDANCE FP"
+      "jdMatch": "CORRESPONDANCE FP",
+      "interviewPrep": "PRÉPA ENTRETIEN"
     },
     "footer": {
       "moduleLabel": "Module Créateur de CV",
@@ -194,8 +206,11 @@
       "coverLetterDescription": "Générez une lettre de motivation personnalisée basée sur votre CV et la fiche de poste.",
       "outreachDescription": "Générez un message de prise de contact concis pour LinkedIn ou e-mail basé sur votre CV et la fiche de poste.",
       "generateButton": "Générer {title}",
+      "writeManually": "L'écrire moi-même",
       "coverLetterFooter": "Conseil : personnalisez d'abord pour de meilleurs résultats.",
-      "outreachFooter": "Conseil : restez bref et personnalisé."
+      "outreachFooter": "Conseil : restez bref et personnalisé.",
+      "interviewPrepDescription": "Générez une préparation d'entretien spécifique au poste, basée sur votre CV adapté et la description du poste.",
+      "interviewPrepFooter": "Conseil : utilisez cette option après l'adaptation pour préparer des réponses sincères et fondées sur votre CV."
     },
     "regenerateDialog": {
       "title": "Régénérer {title} ?",
@@ -307,14 +322,19 @@
         "addFirstJob": "Ajouter le premier emploi",
         "fields": {
           "jobTitle": "Intitulé du poste",
-          "company": "Entreprise"
+          "company": "Entreprise",
+          "secondaryYears": "Dates secondaires (optionnel)"
         },
         "placeholders": {
           "jobTitle": "Développeur senior",
           "company": "Tech Corp",
           "location": "Télétravail / Ville",
           "years": "Janv. 2020 - Présent",
+          "secondaryYears": "Mars 2023 - Juil. 2025",
           "description": "Décrivez votre réalisation..."
+        },
+        "hints": {
+          "secondaryYears": "Pour une seconde période non consécutive à ce poste"
         }
       },
       "education": {
@@ -324,13 +344,15 @@
           "institution": "Établissement",
           "degree": "Diplôme",
           "description": "Description",
-          "descriptionOptional": "Description (optionnelle)"
+          "descriptionOptional": "Description (optionnelle)",
+          "note": "Note (optionnelle)"
         },
         "placeholders": {
           "institution": "Nom de l'université",
           "degree": "Licence en sciences",
           "years": "Août 2016 - Mai 2020",
-          "description": "Informations complémentaires..."
+          "description": "Informations complémentaires...",
+          "note": "p. ex. incluant une année de fondation ou une interruption d'études approuvée"
         }
       },
       "projects": {
@@ -382,6 +404,10 @@
         "vivid": {
           "name": "Vif",
           "description": "Mise en page deux colonnes colorée avec en-têtes accentués et puces fléchées"
+        },
+        "custom": {
+          "name": "Personnalisé",
+          "description": "Mise en page Épuré avec la police serif Merriweather"
         }
       },
       "accentColor": "Couleur d'accentuation",
@@ -406,6 +432,8 @@
       "fontSize": "Taille de police",
       "baseFontSize": "Base",
       "headerScale": "En-têtes",
+      "nameFontSize": "Nom",
+      "contactFontSize": "Contact",
       "headerFontFamily": "En-têtes",
       "bodyFontFamily": "Corps",
       "fontNames": {
@@ -416,13 +444,16 @@
       "options": "Options",
       "compactMode": "Mode compact",
       "contactIcons": "Icônes de contact",
+      "justifyBullets": "Justifier le texte des puces",
       "effectiveOutput": "Sortie effective",
       "effectiveMargins": "Marges (mm) : H{top} B{bottom} G{left} D{right}",
       "effectiveSectionGap": "Espacement des sections",
       "effectiveItemGap": "Espacement des éléments",
       "effectiveLineHeight": "Interligne",
       "effectiveBaseFont": "Police de base",
-      "effectiveHeaderScale": "Échelle des en-têtes",
+      "effectiveHeaderScale": "Taille des en-têtes",
+      "effectiveNameFontSize": "Taille du nom",
+      "effectiveContactFontSize": "Taille des contacts",
       "effectiveHeaderFont": "Police des en-têtes",
       "effectiveBodyFont": "Police du corps",
       "compactHint": "Le mode compact resserre l'espacement et l'interligne. Les marges et la taille de police de base restent littérales.",
@@ -444,7 +475,8 @@
       "editorPanel": "Panneau d'édition",
       "coverLetterEditor": "Éditeur de lettre de motivation",
       "outreachEditor": "Éditeur de message de contact",
-      "jdMatchAnalysis": "Analyse de correspondance FP"
+      "jdMatchAnalysis": "Analyse de correspondance FP",
+      "interviewPrep": "Préparation d'entretien"
     },
     "alerts": {
       "saveNotAvailable": "L'enregistrement n'est disponible que lors de la modification d'un CV existant.",
@@ -461,7 +493,8 @@
       "coverLetterDownloadFailed": "Impossible de télécharger la lettre de motivation : {error}",
       "outreachSaveFailed": "Impossible d'enregistrer le message de contact. Veuillez réessayer.",
       "coverLetterGenerateFailed": "Impossible de générer la lettre de motivation : {error}",
-      "outreachGenerateFailed": "Impossible de générer le message de contact : {error}"
+      "outreachGenerateFailed": "Impossible de générer le message de contact : {error}",
+      "interviewPrepGenerateFailed": "Échec de la génération de la préparation d'entretien : {error}"
     }
   },
   "enrichment": {
@@ -511,6 +544,9 @@
     "subtitle": "Optimisez votre CV pour un poste spécifique",
     "heroTitle": "Personnalisez votre CV",
     "selectResume": "Sélectionner un CV",
+    "baseResumeDescription": "Choisissez le CV de départ — par défaut, votre CV principal.",
+    "masterResumeOption": "CV principal (par défaut)",
+    "untitledResumeOption": "CV sans titre",
     "pasteJobDescription": "Coller la fiche de poste",
     "pasteJobDescriptionBelow": "Collez la fiche de poste ci-dessous",
     "jobDescriptionPlaceholder": "Collez la fiche de poste ici...",
@@ -532,6 +568,8 @@
     },
     "analyzeJob": "Analyser le poste",
     "generateTailored": "Générer le CV personnalisé",
+    "createWithoutAi": "Créer sans IA",
+    "createWithoutAiDescription": "Copie le CV sélectionné tel quel, lié à cette offre, pour que vous puissiez le modifier manuellement — sans appel API.",
     "setupRequiredTitle": "[ CONFIGURATION REQUISE ]",
     "noApiKeyMessage": "> Aucune clé API configurée. La personnalisation du CV nécessite un fournisseur LLM.",
     "configureApiKey": "Configurer la clé API",
@@ -581,7 +619,8 @@
       "failedToGenerate": "Impossible de générer le CV. Vérifiez votre clé API dans les paramètres, puis réessayez.",
       "timeout": "La requête a expiré. Veuillez réessayer avec une fiche de poste plus courte ou vérifiez votre connexion.",
       "failedToPreview": "Impossible de prévisualiser le CV. Vérifiez votre clé API dans les paramètres, puis réessayez.",
-      "failedToConfirm": "Impossible d'appliquer les modifications. Veuillez réessayer."
+      "failedToConfirm": "Impossible d'appliquer les modifications. Veuillez réessayer.",
+      "failedToCreateManual": "Impossible de créer le CV. Veuillez réessayer."
     }
   },
   "settings": {
@@ -705,7 +744,11 @@
       "customPromptLabel": "Invite personnalisée (optionnelle)",
       "customPromptHelp": "Doit inclure ces espaces réservés (chacun entre accolades) : job_description, resume_data, output_language. Laissez vide pour utiliser l'invite par défaut.",
       "customPromptResetButton": "Rétablir la valeur par défaut",
-      "customPromptErrorMissing": "Espaces réservés manquants : {missing}"
+      "customPromptErrorMissing": "Espaces réservés manquants : {missing}",
+      "interviewPrep": {
+        "label": "Préparation d'entretien",
+        "description": "Générer automatiquement une préparation d'entretien en même temps que les CV adaptés enregistrés"
+      }
     },
     "promptSettings": {
       "title": "Paramètres d'invite",
@@ -768,6 +811,7 @@
     "zoomOut": "Zoom arrière"
   },
   "resume": {
+    "pdfTitle": "CV de {name}",
     "personalInfo": {
       "name": "Nom complet",
       "title": "Intitulé du poste",
@@ -805,6 +849,7 @@
     }
   },
   "coverLetter": {
+    "pdfTitle": "Lettre de motivation de {name}",
     "title": "Lettre de motivation",
     "generate": "Générer la lettre de motivation",
     "regenerate": "Régénérer",
@@ -1005,6 +1050,25 @@
       "loadFailed": "Impossible de charger les candidatures.",
       "moveFailed": "Impossible de déplacer la candidature.",
       "deleteFailed": "Impossible de supprimer la ou les candidatures."
+    }
+  },
+  "interviewPrep": {
+    "title": "Préparation d'entretien",
+    "regenerate": "Régénérer",
+    "unavailableTitle": "Préparation non disponible",
+    "loadingContextDescription": "Vérification du contexte du poste pour ce CV adapté avant la génération.",
+    "missingContextDescription": "Ce CV adapté ne contient pas le contexte du poste enregistré nécessaire pour générer une préparation d'entretien. Adaptez à nouveau le CV avec une description de poste pour utiliser ce flux.",
+    "saveRequiredDescription": "Enregistrez ce CV adapté avant de générer une préparation d'entretien.",
+    "focusArea": "Point d'attention",
+    "suggestedAnswerPoints": "Points de réponse suggérés",
+    "whyItMatters": "Pourquoi c'est important",
+    "preparationSuggestion": "Suggestion de préparation",
+    "sections": {
+      "roleFit": "Analyse d'adéquation au poste",
+      "resumeQuestions": "Questions basées sur le CV",
+      "projectFollowUps": "Questions de suivi sur les projets",
+      "skillGaps": "Lacunes de compétences",
+      "talkingPoints": "Points clés à aborder"
     }
   }
 }

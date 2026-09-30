@@ -3,6 +3,7 @@
     "save": "保存",
     "saving": "保存中...",
     "cancel": "キャンセル",
+    "or": "または",
     "delete": "削除",
     "edit": "編集",
     "download": "ダウンロード",
@@ -133,7 +134,14 @@
         "languages": "日本語\n英語",
         "certifications": "AWS Solution Architect\nGoogle Analytics",
         "awards": "月間MVP\nハッカソン優勝"
-      }
+      },
+      "additionalSectionsLabel": "追加セクション",
+      "additionalSectionsEmpty": "追加セクションはまだありません。発表論文、ボランティア活動、または別の言語グループなど、上記の項目とは別に追加できます。",
+      "addSection": "セクションを追加",
+      "sectionNameLabel": "セクション名",
+      "sectionNamePlaceholder": "例：発表論文、ボランティア活動、ツール",
+      "sectionItemsLabel": "項目",
+      "sectionItemsPlaceholder": "項目1\n項目2"
     },
     "customSections": {
       "dialogTitle": "カスタムセクションを追加",
@@ -170,7 +178,10 @@
       "moveDown": "下へ移動",
       "deleteSection": "セクションを削除",
       "deleteTitle": "セクションを削除",
-      "deleteDescription": "「{name}」を削除しますか？この操作は元に戻せません。"
+      "deleteDescription": "「{name}」を削除しますか？この操作は元に戻せません。",
+      "fontSize": "サイズ",
+      "fontSizeAuto": "グローバルのベースフォントサイズを使用",
+      "fontSizeAutoShort": "自動"
     },
     "previewTabs": {
       "resume": "履歴書",
@@ -195,6 +206,7 @@
       "coverLetterDescription": "履歴書と求人内容に基づいてカバーレターを生成します。",
       "outreachDescription": "履歴書と求人内容に基づいて、LinkedIn またはメール向けの外連絡メッセージを生成します。",
       "generateButton": "{title}を生成",
+      "writeManually": "自分で書く",
       "coverLetterFooter": "ヒント：先にカスタマイズすると精度が上がります。",
       "outreachFooter": "ヒント：短く、個別性を入れましょう。",
       "interviewPrepDescription": "カスタマイズ済み履歴書と求人内容に基づいて、職種別の面接準備を生成します。",
@@ -310,14 +322,19 @@
         "addFirstJob": "最初の職歴を追加",
         "fields": {
           "jobTitle": "職種",
-          "company": "会社"
+          "company": "会社",
+          "secondaryYears": "第2期間(任意)"
         },
         "placeholders": {
           "jobTitle": "シニアエンジニア",
           "company": "Tech Corp",
           "location": "リモート / 都市",
           "years": "2020年1月 - 現在",
+          "secondaryYears": "2023年3月 - 2025年7月",
           "description": "実績を説明..."
+        },
+        "hints": {
+          "secondaryYears": "同じ役職で連続しない2回目の在籍期間がある場合に入力"
         }
       },
       "education": {
@@ -327,13 +344,15 @@
           "institution": "学校/機関",
           "degree": "学位",
           "description": "説明",
-          "descriptionOptional": "説明（任意）"
+          "descriptionOptional": "説明（任意）",
+          "note": "備考（任意）"
         },
         "placeholders": {
           "institution": "大学名",
           "degree": "学士（理学）",
           "years": "2016年8月 - 2020年5月",
-          "description": "追加の詳細..."
+          "description": "追加の詳細...",
+          "note": "例：基礎年度や承認された休学期間を含む"
         }
       },
       "projects": {
@@ -385,6 +404,10 @@
         "vivid": {
           "name": "ビビッド",
           "description": "アクセント見出しと矢印箇条書きのカラフルな2カラムレイアウト"
+        },
+        "custom": {
+          "name": "カスタム",
+          "description": "Merriweatherセリフ体を使用したクリーンレイアウト"
         }
       },
       "accentColor": "アクセントカラー",
@@ -409,6 +432,8 @@
       "fontSize": "フォントサイズ",
       "baseFontSize": "本文",
       "headerScale": "見出し",
+      "nameFontSize": "氏名",
+      "contactFontSize": "連絡先",
       "headerFontFamily": "見出し",
       "bodyFontFamily": "本文",
       "fontNames": {
@@ -419,13 +444,16 @@
       "options": "オプション",
       "compactMode": "コンパクトモード",
       "contactIcons": "連絡先アイコン",
+      "justifyBullets": "箇条書きテキストを均等割り付け",
       "effectiveOutput": "適用結果",
       "effectiveMargins": "余白（mm）：上{top} 下{bottom} 左{left} 右{right}",
       "effectiveSectionGap": "セクション間隔",
       "effectiveItemGap": "項目間隔",
       "effectiveLineHeight": "行間",
       "effectiveBaseFont": "本文フォント",
-      "effectiveHeaderScale": "見出しスケール",
+      "effectiveHeaderScale": "見出しサイズ",
+      "effectiveNameFontSize": "氏名サイズ",
+      "effectiveContactFontSize": "連絡先サイズ",
       "effectiveHeaderFont": "見出しフォント",
       "effectiveBodyFont": "本文フォント",
       "compactHint": "コンパクトモードでは間隔と行間が詰まります。余白と本文フォントサイズは維持されます。",
@@ -516,6 +544,9 @@
     "subtitle": "特定の求人に合わせて履歴書を最適化",
     "heroTitle": "履歴書をカスタマイズ",
     "selectResume": "履歴書を選択",
+    "baseResumeDescription": "起点となる履歴書を選択します。デフォルトはマスター履歴書です。",
+    "masterResumeOption": "マスター履歴書(デフォルト)",
+    "untitledResumeOption": "無題の履歴書",
     "pasteJobDescription": "求人内容を貼り付け",
     "pasteJobDescriptionBelow": "下に求人内容を貼り付け",
     "jobDescriptionPlaceholder": "求人内容をここに貼り付けてください...",
@@ -537,6 +568,8 @@
     },
     "analyzeJob": "求人を分析",
     "generateTailored": "カスタマイズ履歴書を生成",
+    "createWithoutAi": "AIを使わずに作成",
+    "createWithoutAiDescription": "選択した履歴書をそのままコピーし、この求人に紐付けます。API呼び出しなしで手動編集できます。",
     "setupRequiredTitle": "[ 設定が必要 ]",
     "noApiKeyMessage": "> API キーが設定されていません。履歴書のカスタマイズには LLM プロバイダーが必要です。",
     "configureApiKey": "API キーを設定",
@@ -586,7 +619,8 @@
       "failedToGenerate": "履歴書を生成できませんでした。設定で API キーを確認してから、もう一度お試しください。",
       "timeout": "リクエストがタイムアウトしました。より短い求人内容で再試行するか、接続を確認してください。",
       "failedToPreview": "履歴書をプレビューできませんでした。設定で API キーを確認してから、もう一度お試しください。",
-      "failedToConfirm": "変更を適用できませんでした。もう一度お試しください。"
+      "failedToConfirm": "変更を適用できませんでした。もう一度お試しください。",
+      "failedToCreateManual": "履歴書を作成できませんでした。もう一度お試しください。"
     }
   },
   "settings": {
@@ -777,6 +811,7 @@
     "zoomOut": "縮小"
   },
   "resume": {
+    "pdfTitle": "{name}の履歴書",
     "personalInfo": {
       "name": "氏名",
       "title": "職種",
@@ -814,6 +849,7 @@
     }
   },
   "coverLetter": {
+    "pdfTitle": "{name}のカバーレター",
     "title": "カバーレター",
     "generate": "カバーレターを生成",
     "regenerate": "再生成",

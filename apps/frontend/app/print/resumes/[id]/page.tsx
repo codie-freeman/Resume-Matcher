@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Resume, { ResumeData } from '@/components/dashboard/resume-component';
 import {
   type TemplateType,
@@ -28,14 +29,39 @@ type PageProps = {
     lineHeight?: string;
     fontSize?: string;
     headerScale?: string;
+    nameSize?: string;
+    contactSize?: string;
     headerFont?: string;
     bodyFont?: string;
     compactMode?: string;
     showContactIcons?: string;
+    justifyBullets?: string;
     accentColor?: string;
     lang?: string;
   }>;
 };
+
+// Overrides the root layout's "Resume Matcher" title so the PDF's embedded
+// /Title metadata (which Chromium's print-to-PDF reads from <title>) reads
+// as the candidate's own document rather than the app name.
+export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
+  const resolvedParams = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const locale = resolveLocale(resolvedSearchParams?.lang);
+
+  // Reuses the page's own fetch; React memoizes identical requests within a
+  // single render pass, so this costs no extra round trip. A failure here is
+  // swallowed so the page body reports the real error instead of metadata.
+  let name: string;
+  try {
+    const resumeData = await fetchResumeData(resolvedParams.id);
+    name = resumeData.personalInfo?.name?.trim() || translate(locale, 'resume.defaults.name');
+  } catch {
+    name = translate(locale, 'resume.defaults.name');
+  }
+
+  return { title: translate(locale, 'resume.pdfTitle', { name }) };
+}
 
 /**
  * Parse header font family
@@ -138,7 +164,8 @@ function parseTemplate(value: string | undefined): TemplateType {
     value === 'modern-two-column' ||
     value === 'latex' ||
     value === 'clean' ||
-    value === 'vivid'
+    value === 'vivid' ||
+    value === 'custom'
   ) {
     return value;
   }
@@ -223,6 +250,14 @@ export default async function PrintResumePage({ params, searchParams }: PageProp
         resolvedSearchParams?.headerScale,
         DEFAULT_TEMPLATE_SETTINGS.fontSize.headerScale
       ),
+      nameSize: parseSpacingLevel(
+        resolvedSearchParams?.nameSize,
+        DEFAULT_TEMPLATE_SETTINGS.fontSize.nameSize
+      ),
+      contactSize: parseSpacingLevel(
+        resolvedSearchParams?.contactSize,
+        DEFAULT_TEMPLATE_SETTINGS.fontSize.contactSize
+      ),
       headerFont: parseHeaderFont(resolvedSearchParams?.headerFont),
       bodyFont: parseBodyFont(resolvedSearchParams?.bodyFont),
     },
@@ -233,6 +268,10 @@ export default async function PrintResumePage({ params, searchParams }: PageProp
     showContactIcons: parseBoolean(
       resolvedSearchParams?.showContactIcons,
       DEFAULT_TEMPLATE_SETTINGS.showContactIcons
+    ),
+    justifyBullets: parseBoolean(
+      resolvedSearchParams?.justifyBullets,
+      DEFAULT_TEMPLATE_SETTINGS.justifyBullets
     ),
     accentColor: parseAccentColor(resolvedSearchParams?.accentColor),
   };

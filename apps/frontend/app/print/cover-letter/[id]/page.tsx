@@ -5,9 +5,34 @@
  * Uses the same API fetch pattern as the resume print page.
  */
 
+import type { Metadata } from 'next';
 import { API_BASE } from '@/lib/api/client';
 import { translate } from '@/lib/i18n/server';
 import { resolveLocale } from '@/lib/i18n/locale';
+import { sanitizeRichText } from '@/lib/utils/html-sanitizer';
+import { stripHtml, toRichTextHtml } from '@/lib/utils/rich-text';
+
+// Overrides the root layout's "Resume Matcher" title so the PDF's embedded
+// /Title metadata (which Chromium's print-to-PDF reads from <title>) reads
+// as the candidate's own document rather than the app name.
+export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
+  const resolvedParams = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const locale = resolveLocale(resolvedSearchParams?.lang);
+
+  // Reuses the page's own fetch; React memoizes identical requests within a
+  // single render pass, so this costs no extra round trip. A failure here is
+  // swallowed so the page body reports the real error instead of metadata.
+  let name: string;
+  try {
+    const { personalInfo } = await fetchCoverLetterData(resolvedParams.id);
+    name = personalInfo.name?.trim() || translate(locale, 'resume.defaults.name');
+  } catch {
+    name = translate(locale, 'resume.defaults.name');
+  }
+
+  return { title: translate(locale, 'coverLetter.pdfTitle', { name }) };
+}
 
 const PAGE_DIMENSIONS = {
   A4: { width: 210, height: 297 },
@@ -88,12 +113,8 @@ export default async function PrintCoverLetterPage({ params, searchParams }: Pag
   });
   const nameFallback = translate(locale, 'resume.defaults.name');
 
-  // Split cover letter into paragraphs
-  const paragraphs = coverLetter
-    .split(/\n\n+/)
-    .flatMap((p) => p.split('\n'))
-    .map((p) => p.trim())
-    .filter((p) => p.length > 0);
+  const hasContent = stripHtml(coverLetter).trim().length > 0;
+  const safeHtml = hasContent ? sanitizeRichText(toRichTextHtml(coverLetter)) : '';
 
   return (
     <div
@@ -157,19 +178,12 @@ export default async function PrintCoverLetterPage({ params, searchParams }: Pag
 
       {/* Body */}
       <div style={{ lineHeight: '1.6' }}>
-        {paragraphs.length > 0 ? (
-          paragraphs.map((para, idx) => (
-            <p
-              key={idx}
-              style={{
-                fontSize: '11pt',
-                margin: '0 0 4mm 0',
-                textAlign: 'justify',
-              }}
-            >
-              {para}
-            </p>
-          ))
+        {hasContent ? (
+          <div
+            style={{ fontSize: '11pt' }}
+            className="[&_p]:m-0 [&_p]:mb-[4mm] [&_p]:text-justify [&_p:last-child]:mb-0 [&_strong]:font-bold [&_em]:italic [&_u]:underline [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-[4mm] [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-[4mm]"
+            dangerouslySetInnerHTML={{ __html: safeHtml }}
+          />
         ) : (
           <p style={{ fontSize: '11pt', color: '#999' }}>
             {translate(locale, 'coverLetter.print.emptyContent')}
