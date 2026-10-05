@@ -1015,14 +1015,62 @@
       "dragAria": "Arrastra para reordenar"
     },
     "modal": {
+      "company": "Empresa",
+      "role": "Puesto",
       "jobDescription": "Descripción del empleo",
       "noJobDescription": "No hay descripción del empleo.",
       "notes": "Notas",
       "notesPlaceholder": "Añade notas sobre esta candidatura…",
-      "saveNotes": "Guardar notas",
+      "saveDetails": "Guardar cambios",
       "resumeUnavailable": "El currículum enviado ya no está disponible.",
       "loadFailed": "No se pudo cargar esta candidatura.",
       "editResume": "Editar currículum"
+    },
+    "tags": {
+      "label": "Etiquetas",
+      "add": "Añadir etiqueta",
+      "done": "Listo",
+      "none": "Sin etiquetas todavía",
+      "suggested": "Sugeridas",
+      "createLabel": "Nueva etiqueta",
+      "createPlaceholder": "p. ej. Prueba psicométrica",
+      "create": "Crear y aplicar",
+      "duplicate": "Esa etiqueta ya existe.",
+      "category": "Categoría",
+      "color": "Color",
+      "usage": "({count})",
+      "removeAria": "Quitar la etiqueta {label}",
+      "deleteAria": "Eliminar la etiqueta {label}",
+      "confirmDelete": "¿Eliminar?",
+      "categories": {
+        "activity": "Actividad",
+        "rejection": "Motivo del rechazo",
+        "general": "Otros"
+      },
+      "colors": {
+        "ink": "Negro",
+        "blue": "Azul",
+        "green": "Verde",
+        "orange": "Naranja",
+        "red": "Rojo",
+        "grey": "Gris"
+      },
+      "suggestions": {
+        "psychometric": "Prueba psicométrica",
+        "oneWayInterview": "Entrevista unidireccional",
+        "phoneScreen": "Entrevista telefónica",
+        "takeHomeTask": "Prueba para casa",
+        "technicalInterview": "Entrevista técnica",
+        "assessmentCentre": "Centro de evaluación",
+        "finalInterview": "Entrevista final",
+        "offerReceived": "Oferta recibida",
+        "ghosted": "Sin respuesta",
+        "rejectedAfterInterview": "Rechazado tras la entrevista",
+        "salaryMismatch": "Salario no coincide",
+        "notEnoughExperience": "Experiencia insuficiente",
+        "roleWithdrawn": "Puesto retirado",
+        "declinedOffer": "Oferta rechazada"
+      }
     },
     "bulk": {
       "selected": "{count} seleccionadas",
@@ -1049,7 +1097,8 @@
     "errors": {
       "loadFailed": "No se pudieron cargar las candidaturas.",
       "moveFailed": "No se pudo mover la candidatura.",
-      "deleteFailed": "No se pudieron eliminar las candidaturas."
+      "deleteFailed": "No se pudieron eliminar las candidaturas.",
+      "tagsLoadFailed": "No se pudieron cargar las etiquetas."
     }
   },
   "interviewPrep": {

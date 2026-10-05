@@ -26,6 +26,7 @@ from app.routers import (
     jobs_router,
     resume_wizard_router,
     resumes_router,
+    tags_router,
 )
 
 
@@ -93,6 +94,7 @@ app.include_router(resumes_router, prefix="/api/v1")
 app.include_router(jobs_router, prefix="/api/v1")
 app.include_router(enrichment_router, prefix="/api/v1")
 app.include_router(applications_router, prefix="/api/v1")
+app.include_router(tags_router, prefix="/api/v1")
 app.include_router(resume_wizard_router, prefix="/api/v1")
 
 

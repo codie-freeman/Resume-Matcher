@@ -1015,14 +1015,62 @@
       "dragAria": "Faire glisser pour réorganiser"
     },
     "modal": {
+      "company": "Entreprise",
+      "role": "Poste",
       "jobDescription": "Fiche de poste",
       "noJobDescription": "Aucune fiche de poste enregistrée.",
       "notes": "Notes",
       "notesPlaceholder": "Ajoutez des notes sur cette candidature…",
-      "saveNotes": "Enregistrer les notes",
+      "saveDetails": "Enregistrer les modifications",
       "resumeUnavailable": "Le CV soumis n'est plus disponible.",
       "loadFailed": "Impossible de charger cette candidature.",
       "editResume": "Modifier le CV"
+    },
+    "tags": {
+      "label": "Étiquettes",
+      "add": "Ajouter une étiquette",
+      "done": "Terminé",
+      "none": "Aucune étiquette pour l'instant",
+      "suggested": "Suggestions",
+      "createLabel": "Nouvelle étiquette",
+      "createPlaceholder": "ex. : Test psychométrique",
+      "create": "Créer et appliquer",
+      "duplicate": "Cette étiquette existe déjà.",
+      "category": "Catégorie",
+      "color": "Couleur",
+      "usage": "({count})",
+      "removeAria": "Retirer l'étiquette {label}",
+      "deleteAria": "Supprimer l'étiquette {label}",
+      "confirmDelete": "Supprimer ?",
+      "categories": {
+        "activity": "Étape",
+        "rejection": "Motif du refus",
+        "general": "Autre"
+      },
+      "colors": {
+        "ink": "Noir",
+        "blue": "Bleu",
+        "green": "Vert",
+        "orange": "Orange",
+        "red": "Rouge",
+        "grey": "Gris"
+      },
+      "suggestions": {
+        "psychometric": "Test psychométrique",
+        "oneWayInterview": "Entretien différé",
+        "phoneScreen": "Préqualification téléphonique",
+        "takeHomeTask": "Exercice à domicile",
+        "technicalInterview": "Entretien technique",
+        "assessmentCentre": "Centre d'évaluation",
+        "finalInterview": "Entretien final",
+        "offerReceived": "Offre reçue",
+        "ghosted": "Sans réponse",
+        "rejectedAfterInterview": "Refusé après l'entretien",
+        "salaryMismatch": "Salaire incompatible",
+        "notEnoughExperience": "Expérience insuffisante",
+        "roleWithdrawn": "Poste retiré",
+        "declinedOffer": "Offre refusée"
+      }
     },
     "bulk": {
       "selected": "{count} sélectionné(s)",
@@ -1049,7 +1097,8 @@
     "errors": {
       "loadFailed": "Impossible de charger les candidatures.",
       "moveFailed": "Impossible de déplacer la candidature.",
-      "deleteFailed": "Impossible de supprimer la ou les candidatures."
+      "deleteFailed": "Impossible de supprimer la ou les candidatures.",
+      "tagsLoadFailed": "Impossible de charger les étiquettes."
     }
   },
   "interviewPrep": {

@@ -1,4 +1,4 @@
-import { apiFetch, apiPost, apiPatch, apiDelete } from './client';
+import { apiFetch, apiPost, apiPatch, apiPut, apiDelete } from './client';
 
 // The seven stable Kanban columns (keys are decoupled from i18n labels).
 export type ApplicationStatus =
@@ -20,6 +20,53 @@ export const APPLICATION_STATUS_ORDER: ApplicationStatus[] = [
   'rejected',
 ];
 
+// --- Tags -------------------------------------------------------------------
+// Tags carry the detail the seven columns can't: which assessments were done
+// (psychometric, one-way interview) and why an application ended.
+
+// What a tag flags. Drives grouping in the picker, not its colour.
+export type TagCategory = 'activity' | 'rejection' | 'general';
+
+export const TAG_CATEGORY_ORDER: TagCategory[] = ['activity', 'rejection', 'general'];
+
+// Palette keys from the Swiss design tokens — never raw hex.
+export type TagColor = 'ink' | 'blue' | 'green' | 'orange' | 'red' | 'grey';
+
+export const TAG_COLOR_ORDER: TagColor[] = ['ink', 'blue', 'green', 'orange', 'red', 'grey'];
+
+// Mirrors the backend TAG_LABEL_MAX_LENGTH so the input can cap before POSTing.
+export const TAG_LABEL_MAX_LENGTH = 40;
+
+export interface Tag {
+  tag_id: string;
+  label: string;
+  category: TagCategory;
+  color: TagColor;
+  created_at: string;
+  updated_at: string;
+}
+
+// `GET /tags` adds how many cards carry each tag, so the UI can warn on delete.
+export interface TagWithUsage extends Tag {
+  usage_count: number;
+}
+
+export interface TagListResponse {
+  tags: TagWithUsage[];
+}
+
+export interface TagCreate {
+  label: string;
+  category?: TagCategory;
+  color?: TagColor;
+}
+
+export interface TagUpdate {
+  label?: string;
+  category?: TagCategory;
+  color?: TagColor;
+}
+
 export interface Application {
   application_id: string;
   job_id: string;
@@ -31,6 +78,7 @@ export interface Application {
   applied_at: string | null;
   notes: string | null;
   position: number;
+  tags: Tag[];
   created_at: string;
   updated_at: string;
 }
@@ -156,4 +204,34 @@ export async function bulkDeleteApplications(
 ): Promise<ApplicationActionResponse> {
   const res = await apiPost('/applications/bulk-delete', { application_ids: applicationIds });
   return asJson<ApplicationActionResponse>(res, 'Failed to delete applications');
+}
+
+// List every tag the user has defined (with usage counts).
+export async function listTags(): Promise<TagListResponse> {
+  const res = await apiFetch('/tags', { credentials: 'include' });
+  return asJson<TagListResponse>(res, 'Failed to load tags');
+}
+
+// Create a tag. An existing label (case-insensitive) comes back unchanged.
+export async function createTag(payload: TagCreate): Promise<Tag> {
+  const res = await apiPost('/tags', payload);
+  return asJson<Tag>(res, 'Failed to create tag');
+}
+
+// Rename / recolour / recategorize a tag everywhere it is used.
+export async function updateTag(id: string, payload: TagUpdate): Promise<Tag> {
+  const res = await apiPatch(`/tags/${id}`, payload);
+  return asJson<Tag>(res, 'Failed to update tag');
+}
+
+// Delete a tag and detach it from every card carrying it.
+export async function deleteTag(id: string): Promise<void> {
+  const res = await apiDelete(`/tags/${id}`);
+  await asJson<ApplicationActionResponse>(res, 'Failed to delete tag');
+}
+
+// Replace a card's tags wholesale (set semantics — idempotent).
+export async function setApplicationTags(id: string, tagIds: string[]): Promise<Application> {
+  const res = await apiPut(`/applications/${id}/tags`, { tag_ids: tagIds });
+  return asJson<Application>(res, 'Failed to update tags');
 }

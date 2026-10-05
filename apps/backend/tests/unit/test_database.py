@@ -252,6 +252,144 @@ class TestApplications:
         assert remaining[0]["position"] == 0  # renumbered after delete
 
 
+class TestTags:
+    async def test_create_normalizes_nothing_but_dedupes_case_insensitively(self, db):
+        first = await db.create_tag("Psychometric", category="activity", color="blue")
+        again = await db.create_tag("PSYCHOMETRIC")
+        # Same tag returned, and the original category/color survive the re-use.
+        assert again["tag_id"] == first["tag_id"]
+        assert again["category"] == "activity"
+        assert again["color"] == "blue"
+        assert len(await db.list_tags()) == 1
+
+    async def test_defaults(self, db):
+        tag = await db.create_tag("Ghosted")
+        assert tag["category"] == "general"
+        assert tag["color"] == "ink"
+
+    async def test_set_tags_is_set_semantics_and_dedupes(self, db):
+        card = await db.create_application(job_id="j1", resume_id="r1")
+        one = await db.create_tag("One-way interview")
+        two = await db.create_tag("Take-home task")
+
+        updated = await db.set_application_tags(
+            card["application_id"], [one["tag_id"], two["tag_id"], one["tag_id"]]
+        )
+        assert [t["label"] for t in updated["tags"]] == ["One-way interview", "Take-home task"]
+
+        # Replacing, not appending.
+        replaced = await db.set_application_tags(card["application_id"], [two["tag_id"]])
+        assert [t["label"] for t in replaced["tags"]] == ["Take-home task"]
+
+        cleared = await db.set_application_tags(card["application_id"], [])
+        assert cleared["tags"] == []
+
+    async def test_set_tags_rejects_unknown_ids_without_partial_write(self, db):
+        from app.database import UnknownTagIds
+
+        card = await db.create_application(job_id="j1", resume_id="r1")
+        known = await db.create_tag("Psychometric")
+        with pytest.raises(UnknownTagIds) as excinfo:
+            await db.set_application_tags(card["application_id"], [known["tag_id"], "ghost"])
+        assert excinfo.value.tag_ids == ["ghost"]
+        # Nothing was applied — not even the valid half of the request.
+        assert (await db.get_application(card["application_id"]))["tags"] == []
+
+    async def test_set_tags_on_missing_card_returns_none(self, db):
+        assert await db.set_application_tags("nope", []) is None
+
+    async def test_tags_are_returned_by_every_read_path(self, db):
+        card = await db.create_application(job_id="j1", resume_id="r1")
+        tag = await db.create_tag("Assessment centre")
+        await db.set_application_tags(card["application_id"], [tag["tag_id"]])
+
+        assert [t["label"] for t in (await db.list_applications())[0]["tags"]] == [
+            "Assessment centre"
+        ]
+        fetched = await db.get_application(card["application_id"])
+        assert [t["label"] for t in fetched["tags"]] == ["Assessment centre"]
+
+    async def test_tags_survive_a_column_move(self, db):
+        card = await db.create_application(job_id="j1", resume_id="r1")
+        tag = await db.create_tag("Salary mismatch", category="rejection", color="red")
+        await db.set_application_tags(card["application_id"], [tag["tag_id"]])
+
+        moved = await db.update_application(
+            card["application_id"], {"status": "rejected", "position": 0}
+        )
+        assert [t["label"] for t in moved["tags"]] == ["Salary mismatch"]
+
+        await db.bulk_update_applications([card["application_id"]], "no_response")
+        assert len((await db.get_application(card["application_id"]))["tags"]) == 1
+
+    async def test_usage_count_tracks_assignments(self, db):
+        a = await db.create_application(job_id="j1", resume_id="r1")
+        b = await db.create_application(job_id="j2", resume_id="r2")
+        tag = await db.create_tag("Psychometric")
+        unused = await db.create_tag("Ghosted")
+        await db.set_application_tags(a["application_id"], [tag["tag_id"]])
+        await db.set_application_tags(b["application_id"], [tag["tag_id"]])
+
+        counts = {t["label"]: t["usage_count"] for t in await db.list_tags()}
+        assert counts == {"Psychometric": 2, "Ghosted": 0}
+
+    async def test_rename_propagates_and_blocks_collisions(self, db):
+        from app.database import DuplicateTagLabel
+
+        card = await db.create_application(job_id="j1", resume_id="r1")
+        tag = await db.create_tag("Phone screen")
+        other = await db.create_tag("Psychometric")
+        await db.set_application_tags(card["application_id"], [tag["tag_id"]])
+
+        renamed = await db.update_tag(tag["tag_id"], {"label": "Recruiter call", "color": "green"})
+        assert renamed["label"] == "Recruiter call"
+        # The card sees the new name without being touched itself.
+        assert [t["label"] for t in (await db.get_application(card["application_id"]))["tags"]] == [
+            "Recruiter call"
+        ]
+
+        with pytest.raises(DuplicateTagLabel):
+            await db.update_tag(other["tag_id"], {"label": "recruiter call"})
+
+    async def test_rename_to_own_label_in_different_case_is_allowed(self, db):
+        tag = await db.create_tag("psychometric")
+        renamed = await db.update_tag(tag["tag_id"], {"label": "Psychometric"})
+        assert renamed["label"] == "Psychometric"
+
+    async def test_update_missing_tag_returns_none(self, db):
+        assert await db.update_tag("nope", {"label": "x"}) is None
+
+    async def test_delete_tag_detaches_it_from_cards(self, db):
+        card = await db.create_application(job_id="j1", resume_id="r1")
+        keep = await db.create_tag("Take-home task")
+        drop = await db.create_tag("Psychometric")
+        await db.set_application_tags(card["application_id"], [keep["tag_id"], drop["tag_id"]])
+
+        assert await db.delete_tag(drop["tag_id"]) is True
+        assert [t["label"] for t in (await db.get_application(card["application_id"]))["tags"]] == [
+            "Take-home task"
+        ]
+        assert await db.delete_tag(drop["tag_id"]) is False
+
+    async def test_deleting_a_card_leaves_no_orphan_links(self, db):
+        card = await db.create_application(job_id="j1", resume_id="r1")
+        tag = await db.create_tag("Psychometric")
+        await db.set_application_tags(card["application_id"], [tag["tag_id"]])
+
+        await db.delete_application(card["application_id"])
+        assert [t["usage_count"] for t in await db.list_tags()] == [0]
+
+    async def test_bulk_delete_leaves_no_orphan_links(self, db):
+        a = await db.create_application(job_id="j1", resume_id="r1")
+        b = await db.create_application(job_id="j2", resume_id="r2")
+        tag = await db.create_tag("Psychometric")
+        await db.set_application_tags(a["application_id"], [tag["tag_id"]])
+        await db.set_application_tags(b["application_id"], [tag["tag_id"]])
+
+        await db.bulk_delete_applications([a["application_id"], b["application_id"]])
+        assert [t["usage_count"] for t in await db.list_tags()] == [0]
+
+
 class TestApiKeyStore:
     async def test_set_get_delete_ciphertext(self, db):
         db.set_api_key_ciphertext("openai", "ct-openai")
@@ -286,3 +424,12 @@ class TestStatsAndReset:
         assert stats["has_master_resume"] is False
         # Applications are cleared too (no orphans after a full reset).
         assert await db.list_applications() == []
+
+    async def test_reset_database_clears_tags(self, db, tmp_path, monkeypatch):
+        monkeypatch.setattr("app.database.settings.data_dir", tmp_path)
+        card = await db.create_application(job_id="j1", resume_id="r1")
+        tag = await db.create_tag("Psychometric")
+        await db.set_application_tags(card["application_id"], [tag["tag_id"]])
+        await db.reset_database()
+        # Tags are user data on the cards — leaving them would orphan the labels.
+        assert await db.list_tags() == []

@@ -8,6 +8,7 @@ import Layers from 'lucide-react/dist/esm/icons/layers';
 import { Card } from '@/components/ui/card';
 import { useTranslations } from '@/lib/i18n';
 import type { Application } from '@/lib/api/tracker';
+import { TagChip } from './tag-chip';
 
 interface ApplicationCardProps {
   application: Application;
@@ -37,6 +38,8 @@ export function ApplicationCard({
 
   const company = application.company?.trim();
   const role = application.role?.trim();
+  // Defensive: a card rendered from a response predating tags has none.
+  const tags = application.tags ?? [];
 
   return (
     <div ref={setNodeRef} style={style}>
@@ -75,6 +78,15 @@ export function ApplicationCard({
               <span className="mt-1 inline-flex items-center gap-1 border border-black bg-paper-tint px-1 font-mono text-[10px] uppercase text-ink-soft">
                 <Layers className="h-3 w-3" />
                 {t('tracker.card.sharedResume')}
+              </span>
+            )}
+            {/* Read-only here — tags are edited in the card modal, so a chip
+                click can't be mistaken for a remove while dragging. */}
+            {tags.length > 0 && (
+              <span className="mt-1 flex flex-wrap gap-1">
+                {tags.map((tag) => (
+                  <TagChip key={tag.tag_id} tag={tag} />
+                ))}
               </span>
             )}
           </button>

@@ -9,8 +9,21 @@ never sees ORM objects — preserving the TinyDB-era contracts.
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import JSON, Boolean, Index, Integer, String, Text, UniqueConstraint, text
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Table,
+    Text,
+    UniqueConstraint,
+    func,
+    text,
+)
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 def _utcnow_iso() -> str:
@@ -96,6 +109,56 @@ class Improvement(Base):
     created_at: Mapped[str] = mapped_column(String, default=_utcnow_iso)
 
 
+# Many-to-many link between tracker cards and tags. A plain Table (not a mapped
+# class) so SQLAlchemy owns inserts/deletes via ``Application.tags``; the
+# ON DELETE CASCADE pairs with ``PRAGMA foreign_keys=ON`` as a storage-level
+# backstop for rows removed outside the ORM.
+application_tags = Table(
+    "application_tags",
+    Base.metadata,
+    Column(
+        "application_id",
+        String,
+        ForeignKey("applications.application_id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+    Column(
+        "tag_id",
+        String,
+        ForeignKey("tags.tag_id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+)
+
+
+class Tag(Base):
+    """A user-defined tracker label.
+
+    Tags carry the detail a seven-column board can't: which assessments a
+    candidate has completed (``activity`` — psychometric, one-way interview),
+    why an application ended (``rejection``), or any free-form flag
+    (``general``). Labels are user data (hence user-renameable and created in
+    the UI language) rather than i18n keys.
+    """
+
+    __tablename__ = "tags"
+    __table_args__ = (
+        # Case-insensitive uniqueness: "Psychometric" and "psychometric" are the
+        # same tag, so the picker can't accumulate near-duplicates.
+        Index("ux_tags_label_nocase", text("lower(label)"), unique=True),
+    )
+
+    tag_id: Mapped[str] = mapped_column(String, primary_key=True)
+    label: Mapped[str] = mapped_column(String)
+    # "activity" | "rejection" | "general" — see schemas.applications.TagCategory.
+    category: Mapped[str] = mapped_column(String, default="general", index=True)
+    # A palette key ("ink"/"blue"/"green"/"orange"/"red"/"grey"), never a raw
+    # hex value — the frontend maps it to a Swiss-palette class.
+    color: Mapped[str] = mapped_column(String, default="ink")
+    created_at: Mapped[str] = mapped_column(String, default=_utcnow_iso)
+    updated_at: Mapped[str] = mapped_column(String, default=_utcnow_iso)
+
+
 class Application(Base):
     """A Kanban application-tracker card."""
 
@@ -120,6 +183,15 @@ class Application(Base):
     position: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[str] = mapped_column(String, default=_utcnow_iso)
     updated_at: Mapped[str] = mapped_column(String, default=_utcnow_iso)
+
+    # ``selectin`` keeps the board a fixed two queries instead of N+1, and
+    # avoids an implicit lazy load on the async path (which would raise).
+    tags: Mapped[list["Tag"]] = relationship(
+        secondary=application_tags,
+        lazy="selectin",
+        # Case-insensitive so chip order matches the picker's tag list.
+        order_by=func.lower(Tag.label),
+    )
 
 
 class ApiKey(Base):

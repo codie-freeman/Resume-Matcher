@@ -3,8 +3,13 @@ import {
   bulkUpdateStatus,
   bulkDeleteApplications,
   createApplication,
+  createTag,
   deleteApplication,
+  deleteTag,
+  listTags,
+  setApplicationTags,
   updateApplication,
+  updateTag,
 } from '@/lib/api/tracker';
 import { llmProviderToKeyProvider } from '@/lib/api/config';
 
@@ -101,5 +106,95 @@ describe('tracker API client', () => {
   it('surfaces the backend detail message on failure', async () => {
     fetchMock.mockResolvedValue(new Response(JSON.stringify({ detail: 'boom' }), { status: 500 }));
     await expect(deleteApplication('x')).rejects.toThrow('boom');
+  });
+});
+
+describe('tracker tag API client', () => {
+  let fetchMock: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  const lastCall = () => {
+    const [url, options] = fetchMock.mock.calls.at(-1)!;
+    return { url: String(url), options: options as RequestInit };
+  };
+
+  it('listTags GETs /tags', async () => {
+    fetchMock.mockResolvedValue(new Response(JSON.stringify({ tags: [] }), { status: 200 }));
+    await listTags();
+    const { url, options } = lastCall();
+    expect(url).toContain('/tags');
+    // GET is the default; the wrapper must not force another verb.
+    expect(options.method ?? 'GET').toBe('GET');
+  });
+
+  it('createTag POSTs the label, category and color', async () => {
+    fetchMock.mockResolvedValue(new Response(JSON.stringify({ tag_id: 't1' }), { status: 200 }));
+    await createTag({ label: 'Psychometric', category: 'activity', color: 'blue' });
+    const { url, options } = lastCall();
+    expect(url).toContain('/tags');
+    expect(options.method).toBe('POST');
+    expect(JSON.parse(String(options.body))).toEqual({
+      label: 'Psychometric',
+      category: 'activity',
+      color: 'blue',
+    });
+  });
+
+  it('updateTag PATCHes /tags/{id} with the partial', async () => {
+    fetchMock.mockResolvedValue(new Response(JSON.stringify({ tag_id: 't1' }), { status: 200 }));
+    await updateTag('t1', { label: 'Recruiter call' });
+    const { url, options } = lastCall();
+    expect(url).toContain('/tags/t1');
+    expect(options.method).toBe('PATCH');
+    expect(JSON.parse(String(options.body))).toEqual({ label: 'Recruiter call' });
+  });
+
+  it('deleteTag DELETEs /tags/{id}', async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ message: 'ok', affected: 1 }), { status: 200 })
+    );
+    await deleteTag('t1');
+    const { url, options } = lastCall();
+    expect(url).toContain('/tags/t1');
+    expect(options.method).toBe('DELETE');
+  });
+
+  it('setApplicationTags PUTs the full tag_ids set to the card', async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ application_id: 'a1', tags: [] }), { status: 200 })
+    );
+    await setApplicationTags('a1', ['t1', 't2']);
+    const { url, options } = lastCall();
+    expect(url).toContain('/applications/a1/tags');
+    // PUT, not PATCH — the endpoint has set semantics, not delta semantics.
+    expect(options.method).toBe('PUT');
+    expect(JSON.parse(String(options.body))).toEqual({ tag_ids: ['t1', 't2'] });
+  });
+
+  it('setApplicationTags sends an empty list when clearing every tag', async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ application_id: 'a1', tags: [] }), { status: 200 })
+    );
+    await setApplicationTags('a1', []);
+    expect(JSON.parse(String(lastCall().options.body))).toEqual({ tag_ids: [] });
+  });
+
+  it('surfaces the backend detail message when a tag write fails', async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ detail: 'A tag with that name already exists.' }), {
+        status: 409,
+      })
+    );
+    await expect(updateTag('t1', { label: 'x' })).rejects.toThrow(
+      'A tag with that name already exists.'
+    );
   });
 });

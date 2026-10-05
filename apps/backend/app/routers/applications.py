@@ -5,7 +5,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
-from app.database import db
+from app.database import DuplicateTagLabel, UnknownTagIds, db
 from app.services.improver import extract_job_keywords
 from app.schemas import (
     APPLICATION_STATUS_ORDER,
@@ -13,15 +13,26 @@ from app.schemas import (
     ApplicationDetailResponse,
     ApplicationListResponse,
     ApplicationResponse,
+    ApplicationTagsUpdate,
     ApplicationUpdate,
     BulkDelete,
     BulkStatusUpdate,
     ManualApplicationCreate,
+    TagCreate,
+    TagListResponse,
+    TagResponse,
+    TagUpdate,
+    TagWithUsage,
 )
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/applications", tags=["Application Tracker"])
+
+# Tags are a top-level resource rather than ``/applications/tags``: a nested
+# path would sit under the ``/{application_id}`` matcher and depend on
+# declaration order to resolve.
+tags_router = APIRouter(prefix="/tags", tags=["Application Tracker"])
 
 
 def _group_by_status(applications: list[dict[str, Any]]) -> dict[str, list[ApplicationResponse]]:
@@ -149,6 +160,28 @@ async def update_application(application_id: str, request: ApplicationUpdate) ->
     return ApplicationResponse(**updated)
 
 
+@router.put("/{application_id}/tags", response_model=ApplicationResponse)
+async def set_application_tags(
+    application_id: str, request: ApplicationTagsUpdate
+) -> ApplicationResponse:
+    """Replace a card's tags with exactly ``tag_ids`` (set semantics).
+
+    Returns the updated card so the board can swap one object in place instead
+    of re-fetching the whole board after every chip toggle.
+    """
+    try:
+        updated = await db.set_application_tags(application_id, request.tag_ids)
+    except UnknownTagIds as e:
+        logger.warning("Rejected tag assignment with unknown ids: %s", e.tag_ids)
+        raise HTTPException(status_code=400, detail="One or more tags no longer exist.")
+    except Exception as e:
+        logger.error("Failed to set tags on application %s: %s", application_id, e)
+        raise HTTPException(status_code=500, detail="Failed to update tags. Please try again.")
+    if updated is None:
+        raise HTTPException(status_code=404, detail="Application not found")
+    return ApplicationResponse(**updated)
+
+
 @router.delete("/{application_id}", response_model=ApplicationActionResponse)
 async def delete_application(application_id: str) -> ApplicationActionResponse:
     """Delete a card."""
@@ -171,6 +204,65 @@ async def bulk_delete_applications(request: BulkDelete) -> ApplicationActionResp
         logger.error("Failed to bulk-delete applications: %s", e)
         raise HTTPException(status_code=500, detail="Failed to delete applications. Please try again.")
     return ApplicationActionResponse(message=f"Deleted {deleted} application(s)", affected=deleted)
+
+
+@tags_router.get("", response_model=TagListResponse)
+async def list_tags() -> TagListResponse:
+    """List every tag the user has defined, with per-tag usage counts."""
+    try:
+        tags = await db.list_tags()
+    except Exception as e:
+        logger.error("Failed to list tags: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to load tags. Please try again.")
+    return TagListResponse(tags=[TagWithUsage(**tag) for tag in tags])
+
+
+@tags_router.post("", response_model=TagResponse)
+async def create_tag(request: TagCreate) -> TagResponse:
+    """Create a tag. An existing label (case-insensitive) is returned as-is."""
+    try:
+        tag = await db.create_tag(
+            label=request.label,
+            category=request.category.value,
+            color=request.color.value,
+        )
+    except Exception as e:
+        logger.error("Failed to create tag: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to create tag. Please try again.")
+    return TagResponse(**tag)
+
+
+@tags_router.patch("/{tag_id}", response_model=TagResponse)
+async def update_tag(tag_id: str, request: TagUpdate) -> TagResponse:
+    """Rename, recolour, or recategorize a tag (applies everywhere it is used)."""
+    updates = request.model_dump(exclude_unset=True)
+    for key in ("category", "color"):
+        value = updates.get(key)
+        if value is not None:
+            updates[key] = value.value if hasattr(value, "value") else value
+    try:
+        updated = await db.update_tag(tag_id, updates)
+    except DuplicateTagLabel:
+        raise HTTPException(status_code=409, detail="A tag with that name already exists.")
+    except Exception as e:
+        logger.error("Failed to update tag %s: %s", tag_id, e)
+        raise HTTPException(status_code=500, detail="Failed to update tag. Please try again.")
+    if updated is None:
+        raise HTTPException(status_code=404, detail="Tag not found")
+    return TagResponse(**updated)
+
+
+@tags_router.delete("/{tag_id}", response_model=ApplicationActionResponse)
+async def delete_tag(tag_id: str) -> ApplicationActionResponse:
+    """Delete a tag and remove it from every card carrying it."""
+    try:
+        deleted = await db.delete_tag(tag_id)
+    except Exception as e:
+        logger.error("Failed to delete tag %s: %s", tag_id, e)
+        raise HTTPException(status_code=500, detail="Failed to delete tag. Please try again.")
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Tag not found")
+    return ApplicationActionResponse(message="Tag deleted", affected=1)
 
 
 async def _extract_company_role(job_description: str) -> dict[str, str | None]:

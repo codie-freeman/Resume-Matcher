@@ -1,9 +1,10 @@
 """Pydantic schemas for the Kanban application tracker."""
 
+import re
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class ApplicationStatus(str, Enum):
@@ -22,6 +23,106 @@ class ApplicationStatus(str, Enum):
 APPLICATION_STATUS_ORDER: list[str] = [s.value for s in ApplicationStatus]
 
 
+class TagCategory(str, Enum):
+    """What a tag is flagging — drives grouping (not colour) in the picker."""
+
+    # Something that happened in the process: psychometric test, one-way
+    # interview, take-home task, assessment centre.
+    activity = "activity"
+    # Why the application ended: ghosted, salary mismatch, role withdrawn.
+    rejection = "rejection"
+    # Anything else the user wants to flag.
+    general = "general"
+
+
+class TagColor(str, Enum):
+    """Swiss-palette keys. Stored as names, never raw hex (see tokens.md)."""
+
+    ink = "ink"
+    blue = "blue"
+    green = "green"
+    orange = "orange"
+    red = "red"
+    grey = "grey"
+
+
+# A tag label is a chip on a Kanban card, so it has to stay short enough to read
+# at a glance without truncating the card.
+TAG_LABEL_MAX_LENGTH = 40
+
+
+def _clean_label(value: str) -> str:
+    """Trim and collapse internal whitespace in a tag label.
+
+    Keeps " one  way interview " and "one way interview" from becoming two
+    distinct tags that the case-insensitive unique index can't catch.
+    """
+    return re.sub(r"\s+", " ", value).strip()
+
+
+class TagResponse(BaseModel):
+    """A tag as returned on cards and in the tag list."""
+
+    tag_id: str
+    label: str
+    category: TagCategory
+    color: TagColor
+    created_at: str
+    updated_at: str
+
+
+class TagWithUsage(TagResponse):
+    """A tag plus how many cards carry it (so the UI can warn before deleting)."""
+
+    usage_count: int = 0
+
+
+class TagListResponse(BaseModel):
+    """Every tag defined by the user."""
+
+    tags: list[TagWithUsage]
+
+
+class TagCreate(BaseModel):
+    """Create a tag. Re-using an existing label returns that tag unchanged."""
+
+    label: str = Field(min_length=1, max_length=TAG_LABEL_MAX_LENGTH)
+    category: TagCategory = TagCategory.general
+    color: TagColor = TagColor.ink
+
+    @field_validator("label")
+    @classmethod
+    def _normalize_label(cls, value: str) -> str:
+        cleaned = _clean_label(value)
+        if not cleaned:
+            raise ValueError("label must not be blank")
+        return cleaned
+
+
+class TagUpdate(BaseModel):
+    """Partial tag update — rename, recolour, or recategorize."""
+
+    label: str | None = Field(default=None, min_length=1, max_length=TAG_LABEL_MAX_LENGTH)
+    category: TagCategory | None = None
+    color: TagColor | None = None
+
+    @field_validator("label")
+    @classmethod
+    def _normalize_label(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        cleaned = _clean_label(value)
+        if not cleaned:
+            raise ValueError("label must not be blank")
+        return cleaned
+
+
+class ApplicationTagsUpdate(BaseModel):
+    """Replace a card's tags wholesale (set semantics, so it's idempotent)."""
+
+    tag_ids: list[str] = Field(default_factory=list)
+
+
 class ApplicationResponse(BaseModel):
     """A single tracker card."""
 
@@ -35,6 +136,7 @@ class ApplicationResponse(BaseModel):
     applied_at: str | None = None
     notes: str | None = None
     position: int
+    tags: list[TagResponse] = Field(default_factory=list)
     created_at: str
     updated_at: str
 
@@ -73,7 +175,12 @@ class ManualApplicationCreate(BaseModel):
 
 
 class ApplicationUpdate(BaseModel):
-    """Partial update — every field optional."""
+    """Partial update — every field optional.
+
+    ``company``/``role`` are editable from the board's card modal, so a blank
+    submission is normalized to ``None``: the card then shows its "unknown
+    company" placeholder instead of an empty line.
+    """
 
     status: ApplicationStatus | None = None
     position: int | None = None
@@ -81,6 +188,13 @@ class ApplicationUpdate(BaseModel):
     company: str | None = None
     role: str | None = None
     applied_at: str | None = None
+
+    @field_validator("company", "role")
+    @classmethod
+    def _blank_to_none(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        return value.strip() or None
 
 
 class BulkStatusUpdate(BaseModel):

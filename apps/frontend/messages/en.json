@@ -1015,14 +1015,62 @@
       "dragAria": "Drag to reorder"
     },
     "modal": {
+      "company": "Company",
+      "role": "Role",
       "jobDescription": "Job Description",
       "noJobDescription": "No job description on file.",
       "notes": "Notes",
       "notesPlaceholder": "Add notes about this application…",
-      "saveNotes": "Save notes",
+      "saveDetails": "Save changes",
       "resumeUnavailable": "The applied resume is no longer available.",
       "loadFailed": "Could not load this application.",
       "editResume": "Edit resume"
+    },
+    "tags": {
+      "label": "Tags",
+      "add": "Add tag",
+      "done": "Done",
+      "none": "No tags yet",
+      "suggested": "Suggested",
+      "createLabel": "New tag",
+      "createPlaceholder": "e.g. Psychometric test",
+      "create": "Create & apply",
+      "duplicate": "That tag already exists.",
+      "category": "Category",
+      "color": "Color",
+      "usage": "({count})",
+      "removeAria": "Remove tag {label}",
+      "deleteAria": "Delete tag {label}",
+      "confirmDelete": "Delete?",
+      "categories": {
+        "activity": "Activity",
+        "rejection": "Rejection reason",
+        "general": "Other"
+      },
+      "colors": {
+        "ink": "Black",
+        "blue": "Blue",
+        "green": "Green",
+        "orange": "Orange",
+        "red": "Red",
+        "grey": "Gray"
+      },
+      "suggestions": {
+        "psychometric": "Psychometric test",
+        "oneWayInterview": "One-way interview",
+        "phoneScreen": "Phone screen",
+        "takeHomeTask": "Take-home task",
+        "technicalInterview": "Technical interview",
+        "assessmentCentre": "Assessment center",
+        "finalInterview": "Final interview",
+        "offerReceived": "Offer received",
+        "ghosted": "Ghosted",
+        "rejectedAfterInterview": "Rejected after interview",
+        "salaryMismatch": "Salary mismatch",
+        "notEnoughExperience": "Not enough experience",
+        "roleWithdrawn": "Role withdrawn",
+        "declinedOffer": "Declined offer"
+      }
     },
     "bulk": {
       "selected": "{count} selected",
@@ -1049,7 +1097,8 @@
     "errors": {
       "loadFailed": "Could not load applications.",
       "moveFailed": "Could not move the application.",
-      "deleteFailed": "Could not delete the application(s)."
+      "deleteFailed": "Could not delete the application(s).",
+      "tagsLoadFailed": "Could not load tags."
     }
   },
   "interviewPrep": {

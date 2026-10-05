@@ -1015,14 +1015,62 @@
       "dragAria": "拖动以重新排序"
     },
     "modal": {
+      "company": "公司",
+      "role": "职位",
       "jobDescription": "职位描述",
       "noJobDescription": "没有职位描述。",
       "notes": "备注",
       "notesPlaceholder": "为此申请添加备注……",
-      "saveNotes": "保存备注",
+      "saveDetails": "保存更改",
       "resumeUnavailable": "所投递的简历已不可用。",
       "loadFailed": "无法加载此申请。",
       "editResume": "编辑简历"
+    },
+    "tags": {
+      "label": "标签",
+      "add": "添加标签",
+      "done": "完成",
+      "none": "暂无标签",
+      "suggested": "推荐",
+      "createLabel": "新标签",
+      "createPlaceholder": "例如：心理测评",
+      "create": "创建并应用",
+      "duplicate": "该标签已存在。",
+      "category": "类别",
+      "color": "颜色",
+      "usage": "({count})",
+      "removeAria": "移除标签 {label}",
+      "deleteAria": "删除标签 {label}",
+      "confirmDelete": "删除？",
+      "categories": {
+        "activity": "环节",
+        "rejection": "拒绝原因",
+        "general": "其他"
+      },
+      "colors": {
+        "ink": "黑色",
+        "blue": "蓝色",
+        "green": "绿色",
+        "orange": "橙色",
+        "red": "红色",
+        "grey": "灰色"
+      },
+      "suggestions": {
+        "psychometric": "心理测评",
+        "oneWayInterview": "单向视频面试",
+        "phoneScreen": "电话初筛",
+        "takeHomeTask": "家庭作业任务",
+        "technicalInterview": "技术面试",
+        "assessmentCentre": "评估中心",
+        "finalInterview": "终面",
+        "offerReceived": "收到录用通知",
+        "ghosted": "无音讯",
+        "rejectedAfterInterview": "面试后被拒",
+        "salaryMismatch": "薪资不匹配",
+        "notEnoughExperience": "经验不足",
+        "roleWithdrawn": "职位撤销",
+        "declinedOffer": "拒绝录用"
+      }
     },
     "bulk": {
       "selected": "已选择 {count} 项",
@@ -1049,7 +1097,8 @@
     "errors": {
       "loadFailed": "无法加载申请。",
       "moveFailed": "无法移动该申请。",
-      "deleteFailed": "无法删除该申请。"
+      "deleteFailed": "无法删除该申请。",
+      "tagsLoadFailed": "无法加载标签。"
     }
   },
   "interviewPrep": {

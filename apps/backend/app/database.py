@@ -25,7 +25,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import settings
 from app.db_engine import init_models_sync, make_async_engine, make_sync_engine
-from app.models import ApiKey, Application, Improvement, Job, Resume
+from app.models import ApiKey, Application, Improvement, Job, Resume, Tag, application_tags
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +43,18 @@ APPLICATION_STATUSES: tuple[str, ...] = (
     "accepted",
     "rejected",
 )
+
+
+class DuplicateTagLabel(Exception):
+    """A tag label collides with an existing tag (compared case-insensitively)."""
+
+
+class UnknownTagIds(Exception):
+    """One or more requested tag IDs do not exist."""
+
+    def __init__(self, tag_ids: list[str]) -> None:
+        super().__init__(f"Unknown tag ids: {', '.join(tag_ids)}")
+        self.tag_ids = tag_ids
 
 
 def _now() -> str:
@@ -161,7 +173,18 @@ class Database:
         }
 
     @staticmethod
-    def _application_to_dict(row: Application) -> dict[str, Any]:
+    def _tag_to_dict(row: Tag) -> dict[str, Any]:
+        return {
+            "tag_id": row.tag_id,
+            "label": row.label,
+            "category": row.category,
+            "color": row.color,
+            "created_at": row.created_at,
+            "updated_at": row.updated_at,
+        }
+
+    @classmethod
+    def _application_to_dict(cls, row: Application) -> dict[str, Any]:
         return {
             "application_id": row.application_id,
             "job_id": row.job_id,
@@ -173,6 +196,9 @@ class Database:
             "applied_at": row.applied_at,
             "notes": row.notes,
             "position": row.position,
+            # Eager-loaded via ``Application.tags`` (lazy="selectin"), so this
+            # never fires an implicit lazy load on the async path.
+            "tags": [cls._tag_to_dict(tag) for tag in row.tags],
             "created_at": row.created_at,
             "updated_at": row.updated_at,
         }
@@ -532,6 +558,10 @@ class Database:
                 applied_at=applied_at,
                 notes=notes,
                 position=position,
+                # Seed the collection so ``_application_to_dict`` reads it from
+                # memory. Without this the attribute is unloaded after commit
+                # and would fire a lazy load, which raises on the async engine.
+                tags=[],
                 created_at=now,
                 updated_at=now,
             )
@@ -681,6 +711,159 @@ class Database:
             await session.commit()
         return deleted
 
+    # -- Tag operations -----------------------------------------------------
+
+    async def list_tags(self) -> list[dict[str, Any]]:
+        """List every tag with how many cards carry it, ordered by label.
+
+        The usage count lets the UI warn before deleting a tag that is still in
+        use. It is one GROUP BY, not a per-tag query.
+        """
+        async with self._session() as session:
+            usage = await session.execute(
+                select(application_tags.c.tag_id, func.count())
+                .group_by(application_tags.c.tag_id)
+            )
+            counts = {tag_id: count for tag_id, count in usage.all()}
+            rows = await session.execute(select(Tag).order_by(func.lower(Tag.label)))
+            tags = []
+            for row in rows.scalars().all():
+                tag = self._tag_to_dict(row)
+                tag["usage_count"] = counts.get(row.tag_id, 0)
+                tags.append(tag)
+            return tags
+
+    async def get_tag(self, tag_id: str) -> dict[str, Any] | None:
+        """Get a tag by ID."""
+        async with self._session() as session:
+            row = await session.get(Tag, tag_id)
+            return self._tag_to_dict(row) if row else None
+
+    async def create_tag(
+        self, label: str, category: str = "general", color: str = "ink"
+    ) -> dict[str, Any]:
+        """Create a tag, deduped case-insensitively on ``label``.
+
+        Re-using an existing label returns that tag unchanged instead of
+        erroring: the picker's "add suggested tag" path is then idempotent and a
+        double-click can't create "Psychometric" twice.
+        """
+        async with self._session() as session:
+            existing = await session.execute(
+                select(Tag).where(func.lower(Tag.label) == label.lower())
+            )
+            found = existing.scalars().first()
+            if found is not None:
+                return self._tag_to_dict(found)
+
+            now = _now()
+            row = Tag(
+                tag_id=str(uuid4()),
+                label=label,
+                category=category,
+                color=color,
+                created_at=now,
+                updated_at=now,
+            )
+            session.add(row)
+            try:
+                await session.commit()
+            except IntegrityError:
+                # A concurrent create won the case-insensitive unique index —
+                # return the winner rather than surfacing a 500.
+                await session.rollback()
+                dup = await session.execute(
+                    select(Tag).where(func.lower(Tag.label) == label.lower())
+                )
+                found = dup.scalars().first()
+                if found is not None:
+                    logger.debug("Deduped concurrent tag create for label=%r", label)
+                    return self._tag_to_dict(found)
+                raise
+            return self._tag_to_dict(row)
+
+    async def update_tag(self, tag_id: str, updates: dict[str, Any]) -> dict[str, Any] | None:
+        """Rename / recolor / recategorize a tag. Returns None when not found.
+
+        Raises ``DuplicateTagLabel`` when the new label already belongs to a
+        different tag, so the router can answer 409 rather than 500 on the
+        unique index.
+        """
+        async with self._session() as session:
+            row = await session.get(Tag, tag_id)
+            if row is None:
+                return None
+
+            new_label = updates.get("label")
+            if new_label is not None and new_label.lower() != row.label.lower():
+                clash = await session.execute(
+                    select(Tag).where(
+                        func.lower(Tag.label) == new_label.lower(),
+                        Tag.tag_id != tag_id,
+                    )
+                )
+                if clash.scalars().first() is not None:
+                    raise DuplicateTagLabel(new_label)
+
+            for key in ("label", "category", "color"):
+                if updates.get(key) is not None:
+                    setattr(row, key, updates[key])
+            row.updated_at = _now()
+            try:
+                await session.commit()
+            except IntegrityError:
+                await session.rollback()
+                raise DuplicateTagLabel(new_label or row.label)
+            return self._tag_to_dict(row)
+
+    async def delete_tag(self, tag_id: str) -> bool:
+        """Delete a tag and detach it from every card it was applied to.
+
+        Links are removed explicitly rather than relying on ON DELETE CASCADE,
+        so the behavior holds even if the FK pragma is ever off.
+        """
+        async with self._session() as session:
+            row = await session.get(Tag, tag_id)
+            if row is None:
+                return False
+            await session.execute(
+                delete(application_tags).where(application_tags.c.tag_id == tag_id)
+            )
+            await session.delete(row)
+            await session.commit()
+            return True
+
+    async def set_application_tags(
+        self, application_id: str, tag_ids: list[str]
+    ) -> dict[str, Any] | None:
+        """Replace a card's tag set wholesale. Returns None when not found.
+
+        Set semantics (rather than add/remove deltas) keep the endpoint
+        idempotent and make the picker's optimistic update trivial to reconcile.
+        Raises ``UnknownTagIds`` if any requested tag does not exist, so a stale
+        client can't silently drop tags it thought it applied.
+        """
+        async with self._session() as session:
+            row = await session.get(Application, application_id)
+            if row is None:
+                return None
+
+            # De-duplicate while preserving the caller's intent.
+            wanted = list(dict.fromkeys(tag_ids))
+            tags: list[Tag] = []
+            if wanted:
+                found = await session.execute(select(Tag).where(Tag.tag_id.in_(wanted)))
+                by_id = {tag.tag_id: tag for tag in found.scalars().all()}
+                missing = [tag_id for tag_id in wanted if tag_id not in by_id]
+                if missing:
+                    raise UnknownTagIds(missing)
+                tags = [by_id[tag_id] for tag_id in wanted]
+
+            row.tags = tags
+            row.updated_at = _now()
+            await session.commit()
+            return self._application_to_dict(row)
+
     # -- Encrypted API key store (sync; read on the LLM hot path) -----------
 
     def get_api_key_ciphertexts(self) -> dict[str, str]:
@@ -755,12 +938,15 @@ class Database:
     async def reset_database(self) -> None:
         """Reset by truncating user-document tables and clearing uploads.
 
-        Clears resumes/jobs/improvements **and** tracker applications (leaving
-        orphaned cards after a full data reset would be a bug). Encrypted
+        Clears resumes/jobs/improvements **and** tracker applications plus
+        their tags (leaving orphaned cards or labels after a full data reset
+        would be a bug). Encrypted
         ``api_keys`` are preserved — matching the pre-existing behavior where a
         reset never wiped the user's stored credentials.
         """
         async with self._session() as session:
+            await session.execute(delete(application_tags))
+            await session.execute(delete(Tag))
             await session.execute(delete(Application))
             await session.execute(delete(Improvement))
             await session.execute(delete(Job))

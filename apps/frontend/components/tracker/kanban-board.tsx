@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/lib/i18n';
 import {
   listApplications,
+  listTags,
   updateApplication,
   bulkUpdateStatus,
   bulkDeleteApplications,
@@ -26,6 +27,7 @@ import {
   type Application,
   type ApplicationColumns,
   type ApplicationStatus,
+  type TagWithUsage,
 } from '@/lib/api/tracker';
 import { KanbanColumn } from './kanban-column';
 import { BulkActionBar } from './bulk-action-bar';
@@ -53,6 +55,9 @@ export function KanbanBoard() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [openCardId, setOpenCardId] = useState<string | null>(null);
   const [manualAddOpen, setManualAddOpen] = useState(false);
+  // The tag registry lives here so the picker doesn't refetch on every card
+  // open; the modal asks for a reload after creating or deleting a tag.
+  const [tags, setTags] = useState<TagWithUsage[]>([]);
 
   // Horizontal-scroll affordance: the seven stages overflow the canvas, so we
   // track whether more columns sit off-screen and surface controls + a stage
@@ -74,8 +79,20 @@ export function KanbanBoard() {
     }
   };
 
+  // Tag loading is deliberately independent of the board: a failed tag fetch
+  // leaves the picker empty rather than blanking the whole board.
+  const loadTags = async () => {
+    try {
+      const data = await listTags();
+      setTags(data.tags);
+    } catch {
+      setError(t('tracker.errors.tagsLoadFailed'));
+    }
+  };
+
   useEffect(() => {
     void load();
+    void loadTags();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -317,6 +334,8 @@ export function KanbanBoard() {
           if (!open) setOpenCardId(null);
         }}
         onUpdated={load}
+        allTags={tags}
+        onTagsChanged={loadTags}
       />
 
       <ManualAddApplicationDialog

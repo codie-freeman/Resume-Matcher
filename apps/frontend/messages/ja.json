@@ -1015,14 +1015,62 @@
       "dragAria": "ドラッグして並べ替え"
     },
     "modal": {
+      "company": "会社",
+      "role": "職種",
       "jobDescription": "求人内容",
       "noJobDescription": "求人内容はありません。",
       "notes": "メモ",
       "notesPlaceholder": "この応募についてのメモを追加…",
-      "saveNotes": "メモを保存",
+      "saveDetails": "変更を保存",
       "resumeUnavailable": "応募した履歴書は利用できなくなりました。",
       "loadFailed": "この応募を読み込めませんでした。",
       "editResume": "履歴書を編集"
+    },
+    "tags": {
+      "label": "タグ",
+      "add": "タグを追加",
+      "done": "完了",
+      "none": "タグはまだありません",
+      "suggested": "候補",
+      "createLabel": "新しいタグ",
+      "createPlaceholder": "例：適性検査",
+      "create": "作成して適用",
+      "duplicate": "そのタグはすでに存在します。",
+      "category": "カテゴリ",
+      "color": "色",
+      "usage": "({count})",
+      "removeAria": "タグ {label} を外す",
+      "deleteAria": "タグ {label} を削除",
+      "confirmDelete": "削除？",
+      "categories": {
+        "activity": "選考ステップ",
+        "rejection": "不採用の理由",
+        "general": "その他"
+      },
+      "colors": {
+        "ink": "黒",
+        "blue": "青",
+        "green": "緑",
+        "orange": "オレンジ",
+        "red": "赤",
+        "grey": "グレー"
+      },
+      "suggestions": {
+        "psychometric": "適性検査",
+        "oneWayInterview": "録画面接",
+        "phoneScreen": "電話面談",
+        "takeHomeTask": "課題提出",
+        "technicalInterview": "技術面接",
+        "assessmentCentre": "アセスメントセンター",
+        "finalInterview": "最終面接",
+        "offerReceived": "内定",
+        "ghosted": "音沙汰なし",
+        "rejectedAfterInterview": "面接後に不採用",
+        "salaryMismatch": "給与条件が不一致",
+        "notEnoughExperience": "経験が不足",
+        "roleWithdrawn": "募集取り下げ",
+        "declinedOffer": "内定辞退"
+      }
     },
     "bulk": {
       "selected": "{count} 件選択中",
@@ -1049,7 +1097,8 @@
     "errors": {
       "loadFailed": "応募を読み込めませんでした。",
       "moveFailed": "応募を移動できませんでした。",
-      "deleteFailed": "応募を削除できませんでした。"
+      "deleteFailed": "応募を削除できませんでした。",
+      "tagsLoadFailed": "タグを読み込めませんでした。"
     }
   },
   "interviewPrep": {
